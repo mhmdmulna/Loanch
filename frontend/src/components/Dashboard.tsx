@@ -41,7 +41,13 @@ const mockDashboardData = {
   ]
 }
 
-export function Dashboard() {
+type Page = "landing" | "dashboard" | "saver" | "borrower"
+
+interface DashboardProps {
+  onNavigate: (page: Page) => void
+}
+
+export function Dashboard({ onNavigate }: DashboardProps) {
   const [wallet] = useWallet()
 
   return (
@@ -96,7 +102,7 @@ export function Dashboard() {
                 <p className="text-slate-400 mb-4">
                   Deposit funds into the loan pool and earn returns from borrower repayments.
                 </p>
-                <Button fullWidth size="large">
+                <Button fullWidth size="large" onClick={() => onNavigate("saver")}>
                   Start Saving
                 </Button>
               </CardContent>
@@ -108,7 +114,7 @@ export function Dashboard() {
                 <p className="text-slate-400 mb-4">
                   Request a loan after identity verification and staking collateral.
                 </p>
-                <Button fullWidth size="large" variant="secondary">
+                <Button fullWidth size="large" variant="secondary" onClick={() => onNavigate("borrower")}>
                   Request Loan
                 </Button>
               </CardContent>

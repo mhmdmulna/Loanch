@@ -2,7 +2,12 @@
 import { Card, CardContent, CardHeader } from "./Card"
 import { WalletButton } from "./WalletComponents"
 
-// Mock pool data for demonstration
+type Page = "landing" | "dashboard" | "saver" | "borrower"
+
+interface LandingPageProps {
+  onNavigate: (page: Page) => void
+}
+
 const mockPoolData = {
   totalDeposits: "2,450,000",
   activeLoan: "1,960,000", 
@@ -11,21 +16,20 @@ const mockPoolData = {
   utilizationRate: 80
 }
 
-export function LandingPage() {
+export function LandingPage({ onNavigate }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-slate-950">
-      {/* Navbar */}
       <nav className="border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <div className="text-xl font-bold text-slate-100">Loanch</div>
               <div className="hidden sm:block text-xs font-semibold uppercase tracking-wide text-emerald-400">
-                Loan · Chain · Launch
+                Loan Chain Launch
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="secondary" size="small">
+              <Button variant="secondary" size="small" onClick={() => onNavigate("dashboard")}>
                 Explore Pool
               </Button>
               <WalletButton size="small" />
@@ -34,7 +38,6 @@ export function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-6xl font-bold text-slate-100 mb-6">
@@ -46,14 +49,13 @@ export function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <WalletButton size="large">Connect Wallet to Start</WalletButton>
-            <Button variant="secondary" size="large">
+            <Button variant="secondary" size="large" onClick={() => onNavigate("dashboard")}>
               Explore Pool Transparency
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Pool Status Preview */}
       <section className="py-16 bg-slate-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -100,7 +102,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* How Loanch Works */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -126,7 +127,7 @@ export function LandingPage() {
                   <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-slate-100 mb-2">2. Borrowers Stake & Request</h3>
+              <h3 className="text-xl font-semibold text-slate-100 mb-2">2. Borrowers Stake and Request</h3>
               <p className="text-slate-400">
                 Verified borrowers stake collateral and request loans. Smart contracts check eligibility, stake requirements, and available liquidity.
               </p>
@@ -138,7 +139,7 @@ export function LandingPage() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.51-1.31c-.562-.649-1.413-1.076-2.353-1.253V5z" clipRule="evenodd" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-slate-100 mb-2">3. Repayment & Returns</h3>
+              <h3 className="text-xl font-semibold text-slate-100 mb-2">3. Repayment and Returns</h3>
               <p className="text-slate-400">
                 Borrowers repay loans with interest. Returns are automatically distributed to savers, platform, and reserves according to predefined rules.
               </p>
@@ -147,7 +148,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* For Savers Section */}
       <section className="py-16 bg-slate-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -190,7 +190,7 @@ export function LandingPage() {
               </div>
             </div>
             <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20">
-              <CardHeader>Save & Earn</CardHeader>
+              <CardHeader>Save and Earn</CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
@@ -211,7 +211,7 @@ export function LandingPage() {
                       <span className="text-emerald-400">490K BOT</span>
                     </div>
                   </div>
-                  <Button fullWidth>Start Saving</Button>
+                  <Button fullWidth onClick={() => onNavigate("saver")}>Start Saving</Button>
                 </div>
               </CardContent>
             </Card>
@@ -219,7 +219,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* For Borrowers Section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -245,7 +244,7 @@ export function LandingPage() {
                       <span className="text-blue-400">1-12 months</span>
                     </div>
                   </div>
-                  <Button fullWidth variant="secondary">Request Loan</Button>
+                  <Button fullWidth variant="secondary" onClick={() => onNavigate("borrower")}>Request Loan</Button>
                 </div>
               </CardContent>
             </Card>
@@ -259,7 +258,7 @@ export function LandingPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-100 mb-2">Identity & Reputation Based</h3>
+                    <h3 className="text-lg font-semibold text-slate-100 mb-2">Identity and Reputation Based</h3>
                     <p className="text-slate-400">Build your financial reputation through on-time payments. Better history leads to better terms.</p>
                   </div>
                 </div>
@@ -291,94 +290,15 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Trust & Privacy Sections */}
-      <section className="py-16 bg-slate-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>Trust Layer</CardHeader>
-              <CardContent>
-                <p className="text-slate-400 mb-4">
-                  Financial rules are encoded in smart contracts, not controlled by a central party. Pool accounting, loan disbursement, and profit distribution run automatically.
-                </p>
-                <ul className="text-sm text-slate-300 space-y-2">
-                  <li>• Reserve ratios enforced by code</li>
-                  <li>• Transparent loan approval criteria</li>
-                  <li>• Immutable distribution rules</li>
-                </ul>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>Privacy</CardHeader>
-              <CardContent>
-                <p className="text-slate-400 mb-4">
-                  Sensitive personal data stays off-chain. Smart contracts only receive verification results needed for system decisions.
-                </p>
-                <ul className="text-sm text-slate-300 space-y-2">
-                  <li>• Identity verification: Yes/No only</li>
-                  <li>• Risk scores: Not raw financial data</li>
-                  <li>• Personal documents: Never on-chain</li>
-                </ul>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>BOT Chain</CardHeader>
-              <CardContent>
-                <p className="text-slate-400 mb-4">
-                  Loanch runs on BOT Chain, providing fast transactions and low fees for both savers and borrowers.
-                </p>
-                <ul className="text-sm text-slate-300 space-y-2">
-                  <li>• Fast block confirmation times</li>
-                  <li>• Low transaction fees</li>
-                  <li>• EVM-compatible smart contracts</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
       <footer className="bg-slate-900 border-t border-slate-800 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="text-xl font-bold text-slate-100 mb-4">Loanch</div>
-              <p className="text-slate-400 text-sm">
-                Programmable lending platform powered by smart contracts on BOT Chain.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-slate-100 font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>Save & Earn</li>
-                <li>Borrow Funds</li>
-                <li>Pool Transparency</li>
-                <li>Reputation System</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-slate-100 font-semibold mb-4">Developers</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>Smart Contracts</li>
-                <li>BOT Chain Docs</li>
-                <li>API Reference</li>
-                <li>SDK</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-slate-100 font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>Documentation</li>
-                <li>FAQ</li>
-                <li>Community</li>
-                <li>Contact</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
-            <p className="text-slate-400 text-sm">© 2024 Loanch. All rights reserved.</p>
-            <p className="text-slate-500 text-xs mt-2 sm:mt-0">Built for BOT Chain hackathon</p>
+          <div className="text-center">
+            <div className="text-xl font-bold text-slate-100 mb-4">Loanch</div>
+            <p className="text-slate-400 text-sm mb-8">
+              Programmable lending platform powered by smart contracts on BOT Chain.
+            </p>
+            <p className="text-slate-400 text-sm">Copyright 2024 Loanch. All rights reserved.</p>
+            <p className="text-slate-500 text-xs mt-2">Built for BOT Chain hackathon</p>
           </div>
         </div>
       </footer>
