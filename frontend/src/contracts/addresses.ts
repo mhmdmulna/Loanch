@@ -1,0 +1,1 @@
+export const LOANCH_CONTRACT_ADDRESS = import.meta.env.VITE_LOANCH_CONTRACT_ADDRESS
