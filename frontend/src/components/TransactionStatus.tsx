@@ -1,5 +1,6 @@
 import { Badge, CheckIcon, ExclamationIcon, XIcon } from './Badge'
 import type { TransactionState } from '../types'
+import { botChainConfig } from '../contracts/config'
 
 interface TransactionStatusProps {
   state: TransactionState
@@ -58,18 +59,20 @@ export function TransactionStatus({
   const config = statusConfig[state]
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="status" aria-live="polite">
       <div className="flex items-center justify-between">
         <Badge variant={config.variant} animated={state === 'confirming'}>
           {config.badge}
         </Badge>
-        {txHash && (
+        {txHash && botChainConfig.explorerUrl && (
           <a
-            href={`#`}
+            href={`${botChainConfig.explorerUrl.replace(/\/$/, '')}/tx/${txHash}`}
+            target="_blank"
+            rel="noreferrer"
             className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
             title={txHash}
           >
-            View on explorer
+            Verify on explorer
           </a>
         )}
       </div>

@@ -14,6 +14,13 @@ Primary product sources reviewed:
 
 The current frontend is a dark-first React/Vite/Tailwind product with emerald primary actions, blue informational states, slate neutrals, and a placeholder purple favicon. The final logo direction should replace the placeholder with a calmer financial technology identity that fits the existing dashboard direction.
 
+User-provided visual references reviewed:
+
+- Pinterest reference 1: a grid of modern SaaS/technology logos with compact symbols, custom letterforms, punchy color fields, and presentation-style logo exploration.
+- Pinterest reference 2: the **Fundview** logo, a geometric letter `F` built from slanted modular shapes, with a strong standalone icon, sharp negative space, and a professional investment/finance feel.
+
+These references change the creative direction: LOANCH should not use a safe generic loop icon. It should use a **distinctive geometric monogram** that feels designed, ownable, and presentation-ready.
+
 ## 2. Product Understanding
 
 LOANCH is a **programmable on-chain lending platform**, not a direct peer-to-peer lending marketplace.
@@ -45,7 +52,7 @@ The strongest brand idea is therefore not "blockchain" or "loan" alone. The stro
 
 > **A trusted financial flow governed by verifiable rules.**
 
-The logo should express pooled capital moving through a controlled system, then returning through a reliable rule engine.
+The logo should express pooled capital moving through a controlled system, then returning through a reliable rule engine. Visually, this should become a custom `L` monogram with enough personality to stand beside the referenced modern SaaS/finance logo marks.
 
 ## 3. Brand Positioning
 
@@ -84,9 +91,11 @@ Core visual principles:
 
 - Use one clear geometric idea.
 - Make the symbol recognizable without the wordmark.
-- Communicate movement and rules without literal arrows, coins, chains, blocks, shields, locks, or nodes.
+- Communicate movement, rules, and launch energy without literal arrows, coins, chains, blocks, shields, locks, or nodes.
 - Keep the mark strong in one color.
 - Make the identity feel like software users can trust with financial state.
+- Use custom modular geometry similar in discipline to the Fundview reference: bold slanted pieces, intentional cuts, and readable negative space.
+- Avoid a plain circular loop or generic fintech swirl.
 
 Design target:
 
@@ -96,11 +105,25 @@ Design target:
 10% distinctive personality
 ```
 
-The personality should come from the interaction between shapes: a pooled center, a continuous route, and a controlled return path.
+The personality should come from the interaction between shapes: slanted capital-flow layers, a hidden `L`, a pool-shaped cut, and a subtle launch trajectory.
 
 ## 5. Logo Concept Exploration
 
-### Concept 1: Controlled Capital Loop
+### Concept 1: Launch Ledger Monogram
+
+Core idea: A custom `L` symbol built from two slanted ledger-like bands and one descending liquidity stem. It combines **Loan**, **Chain**, and **Launch** without drawing any of them literally.
+
+Product connection: The top band represents pooled saver deposits. The middle band represents the smart-contract rule layer. The downward stem represents loan disbursement and repayment returning through the system. The forward slant adds the "launch" energy already present in the name.
+
+Visual mechanism: Three bold geometric pieces form an abstract `L`: two horizontal/slanted bars stacked with a precise negative gap, and a curved or faceted vertical stem dropping from the lower bar. The negative gap between bars creates the sense of a controlled channel.
+
+Memorability: Strong. The symbol has a fast, ownable silhouette and can be recognized without the word LOANCH.
+
+Scalability: Strong at favicon and app-icon size because the silhouette is bold, with no small details.
+
+Risk: If the slant is too aggressive, it may feel like a sports or logistics logo. Keep the angles controlled and premium.
+
+### Concept 2: Controlled Capital Loop
 
 Core idea: Capital enters a shared pool, moves through lending, and returns through repayment and distribution.
 
@@ -108,13 +131,13 @@ Product connection: This directly reflects the saver deposit → loan pool → b
 
 Visual mechanism: A compact rounded-square symbol containing a continuous loop path. The path bends around a central negative-space pool and subtly forms an abstract `L`.
 
-Memorability: Strong. The loop can be recognized as LOANCH's own financial flow rather than a generic wallet or coin.
+Memorability: Medium-high, but less distinctive than the monogram direction.
 
 Scalability: Strong at favicon and app-icon size because the silhouette is compact and the inner negative space is simple.
 
-Risk: If drawn with arrows, it becomes generic payments. The final version must imply motion through geometry, not arrowheads.
+Risk: If drawn with arrows or a plain rounded loop, it becomes generic payments.
 
-### Concept 2: Pool Axis
+### Concept 3: Pool Axis
 
 Core idea: Multiple saver inputs converge into a single regulated pool, then one loan output emerges.
 
@@ -128,7 +151,7 @@ Scalability: Strong, though it risks being too abstract.
 
 Risk: Could resemble cloud infrastructure or a payment processor if not paired with a distinctive wordmark.
 
-### Concept 3: Verified Rule Gate
+### Concept 4: Verified Rule Gate
 
 Core idea: Borrowing happens only after identity, risk, stake, and liquidity checks pass through a rule gate.
 
@@ -142,7 +165,7 @@ Scalability: Strong in monochrome.
 
 Risk: May look like a security product if the gate becomes shield-like.
 
-### Concept 4: Reputation Ledger
+### Concept 5: Reputation Ledger
 
 Core idea: Financial history accumulates into a trustworthy visible record.
 
@@ -156,7 +179,7 @@ Scalability: Good if limited to three strokes.
 
 Risk: Could look like analytics, accounting software, or a checklist.
 
-### Concept 5: Loan + Chain Wordmark
+### Concept 6: Loan + Chain Wordmark
 
 Core idea: Make the typography carry the identity through a custom `O` or `CH` relationship.
 
@@ -170,7 +193,7 @@ Scalability: Wordmark works in navigation and documents; not enough for favicon 
 
 Risk: Forced wordplay may compromise legibility or drift into literal chain-link cliche.
 
-### Concept 6: Launch Vector
+### Concept 7: Launch Vector
 
 Core idea: LOANCH helps capital launch productive activity.
 
@@ -186,51 +209,68 @@ Risk: Too close to startup/rocket/growth language and less specific to pooled sm
 
 ## 6. Selected Logo Direction
 
-Final concept: **Controlled Capital Loop**
+Final concept: **Launch Ledger Monogram**
 
 Use a compact geometric symbol that combines:
 
-- a pooled center,
-- a continuous capital route,
-- a subtle `L` gesture,
-- and a controlled return path.
+- a custom `L` monogram,
+- slanted ledger bands,
+- controlled negative-space channels,
+- a descending liquidity stem,
+- and subtle launch momentum.
 
-This direction best represents LOANCH because the product is not simply "loans on-chain." Its distinct mechanism is pooled deposits governed by smart contracts, disbursed to eligible borrowers, then returned and distributed through deterministic accounting.
+This direction best represents LOANCH because the product is not simply "loans on-chain." Its distinct mechanism is pooled deposits governed by smart contracts, disbursed to eligible borrowers, then returned and distributed through deterministic accounting. The monogram approach also responds better to the provided references: it is more ownable, more graphic, and less generic than a simple loop mark.
 
-The symbol should look like a financial flow made simple. It should not show a coin, chain, block, lock, shield, or bank column.
+The symbol should look like a financial flow made simple and accelerated. It should not show a coin, chain, block, lock, shield, bank column, or generic circular fintech loop.
 
 ## 7. Symbol Construction
 
-The standalone symbol is called the **Loop L**.
+The standalone symbol is called the **Launch Ledger L**.
 
 Base grid:
 
 ```text
 Canvas: 24 x 24 units
 Outer symbol bounds: 20 x 20 units
-Outer corner radius: 5 units
-Stroke / path thickness: 4 units
-Internal gap: 3 units minimum
-Optical overshoot: 0.25 unit on rounded terminals
+Primary band thickness: 4.25 units
+Internal channel gap: 2.25-2.75 units
+Forward slant angle: 10-14 degrees
+Corner radius: 1.5-2.25 units
+Optical overshoot: 0.25 unit on outer slanted ends
 ```
 
 Construction:
 
-1. Start with a rounded-square optical container occupying x=2 to x=22 and y=2 to y=22. The container is not drawn in the default logo; it defines the app icon safe area.
-2. Draw a continuous thick path that begins at the upper-left quadrant, travels right, turns downward on the right side, returns left along the lower third, then turns upward into a short vertical stem. This creates an abstract `L` without literally writing the letter.
-3. Preserve a central negative-space pool measuring approximately 7 x 7 units. This space represents shared liquidity and transparency.
-4. Use rounded joins with a radius matching half the path thickness.
-5. Do not add arrowheads. Direction is implied by the open terminal rhythm and the loop geometry.
-6. Keep the top-left and lower-left terminals slightly open, separated by at least 3 units, so the mark does not become a closed chain link.
+1. Start with an invisible 24-unit square canvas.
+2. Build the symbol from three filled geometric pieces, not strokes.
+3. Top band: a wide slanted parallelogram from x=4, y=4 to x=21, y=8.25. Round only the outer corners slightly. The right end should feel forward-moving, like the Fundview reference, but less sharp.
+4. Middle band: a shorter slanted parallelogram from x=7, y=10.25 to x=19, y=14.5. Align its slant with the top band. This band represents the smart-contract rule layer.
+5. Liquidity stem: a downward shape starting near x=8, y=10.75, tapering or bending toward x=12, y=21. It must read as the vertical stroke of an `L`, but with a soft inner curve or faceted diagonal that gives it personality.
+6. Negative-space channel: keep a crisp white/transparent gap between the top and middle bands. This is the "verifiable rule channel." It must remain visible at 24px.
+7. Inner cut: where the middle band meets the liquidity stem, create a small angular cut so the symbol has a recognizable notch. This notch is the main creative hook.
+8. Keep the overall silhouette leaning forward by 10-14 degrees. Do not rotate the entire mark; construct the pieces with the slant built in.
 
 Recommended shape behavior:
 
-- The top segment represents saver deposits entering the pool.
-- The right turn represents smart contract allocation.
-- The lower segment represents borrower disbursement and repayment movement.
-- The upward inner stem represents returns and reputation rising back into the system.
+- The top band represents saver deposits entering the pool.
+- The negative gap represents rules, verification, and accounting separation.
+- The middle band represents programmable lending capacity.
+- The descending stem represents funds moving into loans and returning through repayment.
+- The forward slant represents launch, progress, and modernity.
 
-The mark should be optically balanced, not mathematically overcomplicated. At 16px, the user should see a bold loop-like `L` with a clear center gap.
+The mark should feel closer to a premium fintech monogram than a diagram. At 16px, the user should see a bold `L`/flag-like financial mark with a clear channel cut.
+
+Do not draw:
+
+- a literal chain,
+- a coin,
+- a lightning bolt,
+- a shield,
+- a blockchain node graph,
+- a plain circular loop,
+- or a generic upward arrow.
+
+The current `frontend/public/favicon.svg` resembles a purple lightning/energy symbol and should not be used as a model.
 
 ## 8. Wordmark
 
@@ -245,15 +285,18 @@ Recommended direction:
 - Use a geometric/humanist sans-serif base.
 - Prefer **Geist** or **Inter** for product implementation because both are available, readable, and compatible with the existing frontend direction.
 - For final brand artwork, customize from a geometric sans base rather than using the raw font unchanged.
+- The wordmark should support the monogram, not compete with it.
 
 Wordmark treatment:
 
 - Use uppercase letters for authority and compactness.
 - Use medium-heavy weight, approximately 650-700.
 - Keep letter spacing tight but readable: `0.01em` to `0.03em`.
-- Use a custom `O` with a very subtle horizontal counter correction so it echoes the symbol's central pool.
-- Give the `A` a clean triangular counter; do not remove the crossbar if readability suffers.
-- Keep `CH` normal. Do not force a literal chain connection.
+- Use a custom `L` with the same slanted terminal language as the icon.
+- Use a custom `A` with a slightly lowered crossbar or triangular counter, echoing the negative-space channel in the symbol.
+- Use a custom `O` with a nearly circular counter to represent the pool, but do not turn it into a coin.
+- Keep `CH` readable. Do not force a literal chain connection.
+- Optional creative detail: the top-right terminal of the `L` in the wordmark may echo the symbol's 10-14 degree slant.
 
 Wordmark proportions:
 
@@ -268,7 +311,7 @@ The wordmark should feel stable and financial, while the symbol provides the dis
 
 ## 9. Color System
 
-Recommended color strategy: **Blue primary with emerald functional accent**.
+Recommended color strategy: **Deep blue primary with electric-blue highlight and emerald functional accent**.
 
 Reasoning:
 
@@ -280,11 +323,11 @@ Primary brand colors:
 
 ```yaml
 brand:
-  loanch-blue: "#2563EB"
-  loanch-blue-hover: "#1D4ED8"
+  loanch-blue: "#155EEF"
+  loanch-blue-hover: "#1249B8"
   loanch-navy: "#0B1F33"
   loanch-ink: "#07111F"
-  loanch-sky: "#60A5FA"
+  loanch-sky: "#4DA3FF"
   loanch-emerald: "#10B981"
   loanch-emerald-deep: "#047857"
 ```
@@ -320,15 +363,16 @@ semantic:
 
 Logo color rules:
 
-- Primary full-color symbol: `#2563EB`.
-- Optional accent version: blue symbol with one small terminal or inner segment in `#10B981`, used only at large sizes above 64px.
+- Primary full-color symbol: `#155EEF`.
+- Hero/presentation version: deep blue symbol with a subtle `#4DA3FF` highlight on the top band only, used only above 96px.
+- Accent version: blue symbol with one restrained emerald inner cut or terminal, used only when the logo appears in a product context about successful returns.
 - Monochrome must be the default for small sizes, legal contexts, and low-color environments.
 - Gradients are not required for recognition.
 
 Gradient policy:
 
 - Avoid gradients inside the logo for product UI.
-- A subtle brand gradient may be used in marketing backgrounds only: `#2563EB` to `#10B981` at low opacity over navy.
+- A subtle brand gradient may be used in marketing backgrounds only: `#155EEF` to `#10B981` at low opacity over navy.
 - Never use the current purple favicon palette as a brand color.
 
 ## 10. Typography
@@ -371,7 +415,7 @@ Use in:
 
 ### Symbol Only
 
-Use the Loop L icon without wordmark.
+Use the Launch Ledger L icon without wordmark.
 
 Use in:
 
@@ -406,14 +450,14 @@ Use monochrome whenever color reproduction is unreliable or when the logo sits o
 
 ### Primary Color
 
-Use `#2563EB` for the symbol and `#0F172A` or `#F8FAFC` for the wordmark depending on background.
+Use `#155EEF` for the symbol and `#0F172A` or `#F8FAFC` for the wordmark depending on background.
 
 ### Small Size
 
 For 16-24px, use the symbol only:
 
 - Remove any accent color.
-- Increase the central negative-space pool by approximately 0.5 unit.
+- Increase the negative-space channel by approximately 0.5 unit.
 - Use one solid color.
 - Do not use the wordmark.
 
@@ -458,20 +502,20 @@ Below these sizes, use the symbol only or plain text `LOANCH`.
 
 Light backgrounds:
 
-- Use blue symbol `#2563EB`.
+- Use blue symbol `#155EEF`.
 - Use navy or slate wordmark `#0F172A`.
 - Maintain strong contrast against white or `#F8FAFC`.
 
 Dark backgrounds:
 
-- Use blue symbol `#60A5FA` or white symbol.
+- Use electric-blue symbol `#4DA3FF` or white symbol.
 - Use white wordmark `#F8FAFC`.
-- Use `#2563EB` only when contrast is sufficient.
+- Use `#155EEF` only when contrast is sufficient.
 
 Brand color backgrounds:
 
 - On blue, use white logo.
-- On navy, use white wordmark with `#60A5FA` symbol if color is allowed.
+- On navy, use white wordmark with `#4DA3FF` symbol if color is allowed.
 - On emerald, use white logo only; do not combine emerald background with blue symbol.
 
 Neutral UI surfaces:
@@ -514,22 +558,22 @@ The logo creates a broader visual system based on controlled financial flow.
 
 Core motifs:
 
-- Rounded rectangular pathways.
-- Central negative-space pools.
+- Slanted modular bands.
+- Angular negative-space channels.
+- A distinctive lower notch where liquidity leaves the rule layer.
 - Split states: reserve, active lending, stake, return.
-- Continuous routes that imply movement without arrows.
-- Calm blue infrastructure with emerald success accents.
+- Calm deep-blue infrastructure with electric-blue highlight and emerald success accents.
 
 UI expression:
 
 - Pool cards can use a central "pool" metric with surrounding reserve, active loan, and liquidity indicators.
-- Flow diagrams should use thick rounded paths instead of thin blockchain-node diagrams.
-- Transaction progress can use the same loop language: prepared → wallet signature → submitted → confirmed.
+- Flow diagrams should use thick slanted bands and controlled channels instead of thin blockchain-node diagrams.
+- Transaction progress can use the same ledger-channel language: prepared → wallet signature → submitted → confirmed.
 - Borrower eligibility can be shown as rule checkpoints passing through a single gate, not as a security shield.
 
 Marketing expression:
 
-- Hero backgrounds may use oversized, low-opacity Loop L path fragments.
+- Hero backgrounds may use oversized, low-opacity Launch Ledger L fragments.
 - Use the visual language to show money moving through rules, not speculative crypto energy.
 - Avoid cyberpunk glow, coin stacks, and node constellations.
 
@@ -556,7 +600,7 @@ Navigation:
 
 Dashboard:
 
-- Use the Loop L icon as the product mark in the sidebar.
+- Use the Launch Ledger L icon as the product mark in the sidebar.
 - Pool overview should make the "pool, reserve, active loan, available liquidity" structure visually central.
 - Cards should remain restrained, using slate surfaces and clear numeric hierarchy.
 
@@ -580,10 +624,10 @@ Transaction states:
 
 ```yaml
 colors:
-  primary: "#2563EB"
-  primary-hover: "#1D4ED8"
+  primary: "#155EEF"
+  primary-hover: "#1249B8"
   primary-soft: "#DBEAFE"
-  primary-on-dark: "#60A5FA"
+  primary-on-dark: "#4DA3FF"
   secondary: "#0B1F33"
   accent: "#10B981"
   accent-hover: "#047857"
@@ -612,8 +656,10 @@ typography:
 
 geometry:
   logo-grid: "24 units"
-  logo-path-thickness: "4 units"
-  logo-corner-radius: "5 units outer / 2 units path joins"
+  logo-band-thickness: "4.25 units"
+  logo-channel-gap: "2.25-2.75 units"
+  logo-slant-angle: "10-14 degrees"
+  logo-corner-radius: "1.5-2.25 units"
   ui-corner-radius: "8px default, 12px for major cards"
   stroke-width: "1px UI borders, 2px focus rings"
   spacing-unit: "4px"
@@ -643,7 +689,7 @@ SVG requirements:
 
 Frontend replacement guidance:
 
-- Replace `frontend/public/favicon.svg` with the final Loop L favicon.
+- Replace `frontend/public/favicon.svg` with the final Launch Ledger L favicon.
 - Replace text-only navbar brand with the primary logo asset.
 - Keep `Inter` in `frontend/src/index.css` unless the project explicitly adopts Geist.
 - Update the existing emerald-first UI gradually: primary brand can be blue while emerald remains the success/action accent if the current product screens depend on it.
@@ -656,15 +702,15 @@ Accessibility:
 
 ## 20. Final Creative Direction
 
-Final concept: **Controlled Capital Loop**
+Final concept: **Launch Ledger Monogram**
 
 Why it represents LOANCH:
 
-LOANCH is built around pooled capital governed by smart contract rules. The selected symbol turns that mechanism into a simple visual idea: capital enters, moves through a controlled route, returns, and remains visible through a central pool.
+LOANCH is built around pooled capital governed by smart contract rules. The selected symbol turns that mechanism into a custom geometric `L`: saver capital enters through a top band, passes a visible rule channel, becomes lending capacity, and moves through a liquidity stem into borrower activity and repayment.
 
 Symbol meaning:
 
-The Loop L combines a subtle `L`, a central liquidity pool, and a continuous financial route. It is not a literal chain, but it still feels on-chain because it communicates verifiable movement through a rule-based system.
+The Launch Ledger L combines a letterform, a ledger/rule layer, and a forward launch gesture. It is not a literal chain, but it still feels on-chain because it communicates verifiable movement through a controlled financial system.
 
 Wordmark direction:
 
@@ -672,7 +718,7 @@ Use uppercase `LOANCH` in a customized geometric sans. Keep it readable, stable,
 
 Color direction:
 
-Use blue as the primary brand color for trust and infrastructure. Keep emerald as a restrained financial-success accent. Avoid purple, neon, coin-gold, and heavy gradients.
+Use deep blue as the primary brand color for trust and infrastructure. Allow electric blue as a controlled highlight for presentation use. Keep emerald as a restrained financial-success accent. Avoid purple, neon, coin-gold, and heavy gradients.
 
 Typography direction:
 
@@ -680,11 +726,11 @@ Use Inter or Geist Sans, with a custom wordmark treatment for final brand artwor
 
 Visual personality:
 
-Professional, precise, transparent, and slightly clever. The central negative-space pool gives the mark its distinctiveness without making it playful or decorative.
+Professional, precise, sharp, transparent, and slightly clever. The slanted bands and inner notch give the mark its distinctiveness without making it playful or decorative.
 
 Why it is memorable:
 
-The symbol has a compact silhouette and a clear internal void. It can stand alone as an app icon while still linking back to LOANCH's core mechanism.
+The symbol has a compact slanted silhouette, a clear channel cut, and an ownable lower notch. It can stand alone as an app icon while still linking back to LOANCH's core mechanism.
 
 Why it scales:
 

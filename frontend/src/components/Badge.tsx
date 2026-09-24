@@ -10,9 +10,9 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  success: "bg-emerald-500 bg-opacity-20 text-emerald-300",
-  warning: "bg-amber-500 bg-opacity-20 text-amber-300",
-  error: "bg-rose-500 bg-opacity-20 text-rose-300",
+  success: "bg-emerald-500/20 text-emerald-300",
+  warning: "bg-amber-500/20 text-amber-300",
+  error: "bg-rose-500/20 text-rose-300",
   neutral: "bg-slate-700 text-slate-300",
   pending: "bg-amber-500 bg-opacity-20 text-amber-200",
 }
@@ -34,7 +34,7 @@ export function Badge({
     .join(" ")
 
   return (
-    <span className={combinedClassName}>
+    <span role="status" className={combinedClassName}>
       {icon && <span className="flex-shrink-0">{icon}</span>}
       <span>{children}</span>
     </span>

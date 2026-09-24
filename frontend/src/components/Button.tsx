@@ -38,7 +38,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'font-semibold rounded-lg focus:outline-2 focus:outline-offset-2 focus:outline-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+    'font-semibold rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-normal'
 
   const variantClass = variantStyles[variant]
   const sizeClass = sizeStyles[size]
@@ -64,8 +64,10 @@ export function Button({
 
   return (
     <button
+      type={props.type ?? 'button'}
       className={combinedClassName}
       disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
       {...props}
     >
       {isLoading ? (

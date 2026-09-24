@@ -55,6 +55,8 @@ export function Input({
           type={type}
           className={inputClassName}
           required={required}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${inputId}-error` : success ? `${inputId}-success` : undefined}
           {...props}
         />
         {icon && (
@@ -65,7 +67,7 @@ export function Input({
       </div>
 
       {error && (
-        <p className="mt-1 text-xs text-rose-400 flex items-center gap-1">
+        <p id={`${inputId}-error`} role="alert" className="mt-1 text-xs text-rose-400 flex items-center gap-1">
           <svg
             className="h-3 w-3 flex-shrink-0"
             fill="currentColor"
@@ -83,7 +85,7 @@ export function Input({
       )}
 
       {success && (
-        <p className="mt-1 text-xs text-emerald-400 flex items-center gap-1">
+        <p id={`${inputId}-success`} role="status" className="mt-1 text-xs text-emerald-400 flex items-center gap-1">
           <svg
             className="h-3 w-3 flex-shrink-0"
             fill="currentColor"

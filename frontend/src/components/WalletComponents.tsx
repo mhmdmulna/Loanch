@@ -136,7 +136,8 @@ export function NetworkGuard({ children, fallback }: NetworkGuardProps) {
   if (!wallet.isConnected) {
     return (
       <div className="text-center p-8">
-        <p className="text-slate-400 mb-4">Connect your wallet to continue</p>
+        <h2 className="text-xl font-semibold text-slate-100">Connect your wallet</h2>
+        <p className="text-slate-400 my-3">Your wallet is not connected, so Loanch cannot read your position or submit a transaction yet.</p>
         <Button onClick={walletActions.connect} isLoading={wallet.isLoading}>
           Connect Wallet
         </Button>
@@ -148,7 +149,8 @@ export function NetworkGuard({ children, fallback }: NetworkGuardProps) {
     return (
       fallback || (
         <div className="text-center p-8">
-          <p className="text-slate-400 mb-4">Switch to BOT Chain to continue</p>
+          <h2 className="text-xl font-semibold text-slate-100">Switch to BOT Chain</h2>
+          <p className="text-slate-400 my-3">This wallet is connected to a different network. Switch to BOT Chain to continue safely.</p>
           <Button
             onClick={walletActions.switchNetwork}
             isLoading={wallet.isLoading}

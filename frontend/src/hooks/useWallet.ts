@@ -84,7 +84,7 @@ export function useWallet(): [WalletState, WalletActions] {
     if (!window.ethereum) {
       setState(prev => ({
         ...prev,
-        error: "MetaMask not installed",
+        error: "No compatible wallet was found. Install a browser wallet such as MetaMask, then try again.",
       }))
       return
     }
@@ -100,7 +100,9 @@ export function useWallet(): [WalletState, WalletActions] {
       console.error("Error connecting wallet:", error)
       setState(prev => ({
         ...prev,
-        error: error instanceof Error ? error.message : "Failed to connect wallet",
+        error: error instanceof Error && error.message.toLowerCase().includes("reject")
+          ? "The wallet connection was cancelled. Connect your wallet to continue."
+          : "Loanch could not connect to your wallet. Check that it is unlocked and try again.",
       }))
     } finally {
       setState(prev => ({ ...prev, isLoading: false }))
@@ -123,7 +125,7 @@ export function useWallet(): [WalletState, WalletActions] {
     if (!window.ethereum || !botChainConfig.chainId) {
       setState(prev => ({
         ...prev,
-        error: "Cannot switch network: MetaMask not available or BOT Chain not configured",
+        error: "BOT Chain is not configured for this demo, so the network cannot be switched yet.",
       }))
       return
     }
@@ -157,14 +159,14 @@ export function useWallet(): [WalletState, WalletActions] {
           console.error("Error adding BOT Chain:", addError)
           setState(prev => ({
             ...prev,
-            error: "Failed to add BOT Chain to wallet",
+            error: "BOT Chain could not be added to your wallet. Check the network settings and try again.",
           }))
         }
       } else {
         console.error("Error switching network:", error)
         setState(prev => ({
           ...prev,
-          error: "Failed to switch to BOT Chain",
+          error: "The wallet stayed on the wrong network. Switch to BOT Chain in your wallet and try again.",
         }))
       }
     } finally {
