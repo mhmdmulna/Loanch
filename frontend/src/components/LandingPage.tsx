@@ -2,6 +2,7 @@ import { Button } from "./Button"
 import { Card, CardContent, CardHeader } from "./Card"
 import { WalletButton } from "./WalletComponents"
 import { Footer } from "./Footer"
+import Topography from "./Topography"
 import type { Page } from "../types"
 
 interface LandingPageProps {
@@ -10,7 +11,7 @@ interface LandingPageProps {
 
 const mockPoolData = {
   totalDeposits: "2,450,000",
-  activeLoan: "1,960,000", 
+  activeLoan: "1,960,000",
   availableLiquidity: "490,000",
   reserveFund: "490,000",
   utilizationRate: 80
@@ -18,15 +19,12 @@ const mockPoolData = {
 
 export function LandingPage({ onNavigate }: LandingPageProps) {
   return (
-    <div className="loanch-page">
-      <nav className="border-b border-[var(--loanch-border)] bg-[var(--loanch-bg)]/95 backdrop-blur">
+    <div className="loanch-page loanch-landing-page">
+      <nav className="loanch-landing-nav" aria-label="Primary navigation">
         <div className="loanch-container">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <div className="text-xl font-bold tracking-[-0.04em] text-slate-100">Loanch</div>
-              <div className="loanch-eyebrow hidden sm:block text-[9px]">
-                Loan Chain Launch
-              </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="secondary" size="small" onClick={() => onNavigate("dashboard")}>
@@ -38,26 +36,97 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </nav>
 
-      <section className="relative border-b border-[var(--loanch-border)] py-20 sm:py-32">
-        <div className="loanch-container text-center">
-          <div className="loanch-eyebrow mb-5">Programmable lending · BOT Chain</div>
-          <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-semibold tracking-[-0.055em] text-slate-100 sm:text-6xl">
-            Save. Borrow. Build trust on-chain.
+      <section className="loanch-hero relative isolate overflow-hidden py-20 sm:py-32">
+        <div className="loanch-hero-background absolute inset-0 opacity-75" aria-hidden="true">
+          <Topography
+            lowColor="#277aff"
+            midColor="#96ffda"
+            highColor="#FFFFFF"
+            speed={0.35}
+            morphAmount={3.0}
+            morphSpeed={0.05}
+            bands={2.0}
+            thickness={0.01}
+            scale={1.0}
+            pixelSize={1.0}
+            glow={0.4}
+            colorMode="elevation"
+            contrast={2.8}
+            brightness={1.0}
+            fillBands={false}
+            opacity={1.0}
+            grain={true}
+            grainIntensity={0.04}
+            mouseInteraction={true}
+            mouseRadius={0.3}
+            mouseStrength={0.4}
+          />
+        </div>
+        {/* Subtle overlay — pointer-events-none so cursor still reaches Topography */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/25 via-transparent to-slate-950/35 pointer-events-none" aria-hidden="true" />
+        <div className="loanch-container relative z-10 text-center">
+          <h1
+            className="mx-auto mb-6 max-w-4xl font-extrabold tracking-[-0.055em] sm:text-7xl text-5xl leading-[1.05]"
+            style={{
+              textShadow: "0 0 80px rgba(52,211,153,0.25), 0 0 40px rgba(52,211,153,0.15)"
+            }}
+          >
+            <span
+              style={{
+                background: "linear-gradient(135deg, #ffffff 0%, #86efac 35%, #34d399 60%, #6ee7f7 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text"
+              }}
+            >
+              Save. Borrow.
+            </span>
+            <br />
+            <span className="text-slate-100">Build trust on-chain.</span>
           </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-slate-400">
-            Loanch is a programmable lending platform where deposits, loans, staking, repayments, 
-            and returns are transparently managed by smart contracts on BOT Chain.
+          <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-slate-400">
+            Loanch is a programmable lending platform where deposits, loans, staking, repayments,
+            and returns are transparently managed by smart contracts.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <WalletButton size="large">Connect Wallet to Start</WalletButton>
-            <Button variant="secondary" size="large" onClick={() => onNavigate("pool")}>
+            {/* Primary CTA — Connect Wallet */}
+            <div className="hero-white-btn-wrap">
+              <WalletButton size="large" variant="primary">
+                Connect Wallet to Start
+              </WalletButton>
+            </div>
+            {/* Secondary CTA — Explore Pool */}
+            <Button
+              variant="secondary"
+              size="large"
+              onClick={() => onNavigate("pool")}
+              style={{
+                background: "#ffffff",
+                color: "#0f172a",
+                border: "none",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.28)",
+                fontWeight: 700,
+              }}
+            >
               Explore Pool Transparency
             </Button>
           </div>
+          <style>{`
+            .hero-white-btn-wrap button {
+              background: #ffffff !important;
+              color: #0f172a !important;
+              border: none !important;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.28) !important;
+              font-weight: 700 !important;
+            }
+            .hero-white-btn-wrap button:hover {
+              background: #f1f5f9 !important;
+            }
+          `}</style>
         </div>
       </section>
 
-      <section className="bg-[var(--loanch-surface)] py-16">
+      <section className="loanch-pool-section py-16">
         <div className="loanch-container">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-semibold tracking-[-0.04em] text-slate-100 mb-4">Live Pool Status</h2>
@@ -223,7 +292,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <Card className="border-slate-700">
+            <Card className="border-slate-700">
               <CardHeader>Borrow with Confidence</CardHeader>
               <CardContent>
                 <div className="space-y-4">

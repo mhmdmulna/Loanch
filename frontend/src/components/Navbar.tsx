@@ -37,13 +37,7 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
               </svg>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold tracking-[-0.04em] text-slate-100">Loanch</span>
-                <span className="loanch-eyebrow hidden sm:inline text-[9px]">
-                  BOT Chain
-                </span>
-              </div>
-              <p className="hidden text-[10px] text-slate-400 sm:block">Loan · Chain · Launch</p>
+              <span className="text-lg font-bold tracking-[-0.04em] text-slate-100">Loanch</span>
             </div>
           </div>
 
@@ -55,11 +49,10 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`relative rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
-                    isActive
+                  className={`relative rounded-md px-3 py-2 text-xs font-semibold transition-colors ${isActive
                       ? "bg-[var(--loanch-surface-raised)] text-[var(--loanch-accent)]"
                       : "text-slate-400 hover:bg-[var(--loanch-surface)] hover:text-slate-100"
-                  }`}
+                    }`}
                 >
                   {item.label}
                   {item.badge && (
@@ -113,11 +106,10 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full rounded-md px-3 py-2.5 text-left text-sm font-medium transition-colors ${
-                  isActive
+                className={`w-full rounded-md px-3 py-2.5 text-left text-sm font-medium transition-colors ${isActive
                     ? "bg-[var(--loanch-surface-raised)] font-semibold text-[var(--loanch-accent)]"
                     : "text-slate-300 hover:bg-[var(--loanch-surface)] hover:text-slate-100"
-                }`}
+                  }`}
               >
                 {item.label}
               </button>

@@ -58,6 +58,68 @@ button, a, input, textarea, select { font: inherit; }
   background: var(--loanch-bg);
 }
 
+.loanch-landing-page {
+  position: relative;
+}
+
+.loanch-landing-nav {
+  position: absolute;
+  z-index: 50;
+  top: 1rem;
+  left: 50%;
+  width: min(calc(100% - 2rem), 78rem);
+  transform: translateX(-50%);
+  border: 1px solid rgb(240 244 233 / 0.14);
+  border-radius: 1rem;
+  background: rgb(7 16 15 / 0.48);
+  box-shadow:
+    0 18px 50px rgb(0 0 0 / 0.24),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+.loanch-landing-nav::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(110deg, rgb(255 255 255 / 0.08), transparent 35%, rgb(199 243 107 / 0.04));
+}
+
+.loanch-hero {
+  min-height: max(600px, 100svh);
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 35%, rgb(39 122 255 / 0.18), transparent 55%),
+    var(--loanch-bg);
+}
+
+.loanch-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: clamp(7rem, 16vw, 13rem);
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, var(--loanch-bg) 88%);
+}
+
+.loanch-hero-background {
+  z-index: 0;
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgb(7 16 15 / 0.18), rgb(7 16 15 / 0.58));
+}
+
+.loanch-pool-section {
+  background: linear-gradient(180deg, var(--loanch-bg) 0%, var(--loanch-surface) 11rem, var(--loanch-surface) 100%);
+}
+
 .loanch-panel {
   background: var(--loanch-surface);
   border: 1px solid var(--loanch-border);
