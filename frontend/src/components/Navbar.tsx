@@ -26,24 +26,24 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
   }
 
   return (
-    <nav className="border-b border-slate-800 bg-slate-950/90 backdrop-blur sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b border-[var(--loanch-border)] bg-[var(--loanch-bg)]/95 backdrop-blur">
+      <div className="loanch-container">
         <div className="flex justify-between items-center h-16">
           {/* Brand */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavClick("landing")}>
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <div className="flex cursor-pointer items-center gap-3" onClick={() => handleNavClick("landing")}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-md border border-[var(--loanch-accent)]/40 bg-[var(--loanch-accent)]/10">
               <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight text-slate-100">Loanch</span>
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                <span className="text-lg font-bold tracking-[-0.04em] text-slate-100">Loanch</span>
+                <span className="loanch-eyebrow hidden sm:inline text-[9px]">
                   BOT Chain
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 hidden sm:block">Loan · Chain · Launch</p>
+              <p className="hidden text-[10px] text-slate-400 sm:block">Loan · Chain · Launch</p>
             </div>
           </div>
 
@@ -55,10 +55,10 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors relative ${
+                  className={`relative rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
                     isActive
-                      ? "text-emerald-400 bg-slate-800/80 shadow-inner"
-                      : "text-slate-300 hover:text-slate-100 hover:bg-slate-900"
+                      ? "bg-[var(--loanch-surface-raised)] text-[var(--loanch-accent)]"
+                      : "text-slate-400 hover:bg-[var(--loanch-surface)] hover:text-slate-100"
                   }`}
                 >
                   {item.label}
@@ -74,8 +74,8 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
 
           {/* Right actions: Wallet & Demo indicator */}
           <div className="hidden sm:flex items-center space-x-3">
-            <div className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <div className="flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] text-amber-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
               Demo Mode
             </div>
             <WalletButton size="small" />
@@ -86,7 +86,7 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
             <WalletButton size="small" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-slate-900 text-slate-300 hover:text-slate-100 border border-slate-800"
+              className="rounded-md border border-[var(--loanch-border)] bg-[var(--loanch-surface)] p-2 text-slate-300 hover:text-slate-100"
               aria-label="Toggle navigation"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,8 +103,8 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-1">
-          <div className="mb-3 px-2 py-1 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-md">
+        <div className="space-y-1 border-b border-[var(--loanch-border)] bg-[var(--loanch-bg)] px-4 pb-4 pt-2 lg:hidden">
+          <div className="mb-3 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-300">
             Demo Mode — Contracts Pending Deployment
           </div>
           {navItems.map((item) => {
@@ -113,10 +113,10 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-full rounded-md px-3 py-2.5 text-left text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-slate-800 text-emerald-400 font-semibold"
-                    : "text-slate-300 hover:bg-slate-900 hover:text-slate-100"
+                    ? "bg-[var(--loanch-surface-raised)] font-semibold text-[var(--loanch-accent)]"
+                    : "text-slate-300 hover:bg-[var(--loanch-surface)] hover:text-slate-100"
                 }`}
               >
                 {item.label}

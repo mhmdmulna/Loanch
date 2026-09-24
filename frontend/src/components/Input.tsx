@@ -24,7 +24,7 @@ export function Input({
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
 
   const baseInputStyles =
-    'w-full px-3 py-2 bg-slate-950 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed transition-all'
+    'w-full px-3.5 py-2.5 bg-[var(--loanch-surface-inset)] border border-[var(--loanch-border-strong)] rounded-md text-slate-100 placeholder-slate-500 focus:border-[var(--loanch-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--loanch-accent)] disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed transition-colors'
 
   const errorStyles = error
     ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500'
@@ -42,7 +42,7 @@ export function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="mb-2 block text-xs font-medium text-slate-100"
+          className="mb-2 block text-xs font-semibold text-slate-200"
         >
           {label}
           {required && <span className="text-rose-500 ml-1">*</span>}
@@ -125,7 +125,7 @@ export function TextArea({
   const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-')
 
   const baseStyles =
-    'w-full px-3 py-2 bg-slate-950 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed transition-all resize-none min-h-24'
+    'w-full px-3.5 py-2.5 bg-[var(--loanch-surface-inset)] border border-[var(--loanch-border-strong)] rounded-md text-slate-100 placeholder-slate-500 focus:border-[var(--loanch-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--loanch-accent)] disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed transition-colors resize-none min-h-24'
 
   const errorStyles = error
     ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500'
@@ -143,7 +143,7 @@ export function TextArea({
       {label && (
         <label
           htmlFor={textareaId}
-          className="mb-2 block text-xs font-medium text-slate-100"
+          className="mb-2 block text-xs font-semibold text-slate-200"
         >
           {label}
           {required && <span className="text-rose-500 ml-1">*</span>}

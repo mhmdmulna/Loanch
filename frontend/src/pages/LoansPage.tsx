@@ -120,8 +120,8 @@ export function LoansPage({ onNavigate }: LoansPageProps) {
 
   return (
     <NetworkGuard>
-      <div className="min-h-screen bg-slate-950 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="loanch-page loanch-secondary py-8">
+        <div className="loanch-container space-y-8">
           
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
@@ -430,7 +430,7 @@ export function LoansPage({ onNavigate }: LoansPageProps) {
                             No payments recorded yet for this loan.
                           </div>
                         ) : (
-                          <div className="overflow-x-auto rounded-lg border border-slate-800">
+                          <div className="loanch-table-wrap overflow-x-auto rounded-lg border border-slate-800">
                             <table className="w-full text-left text-xs">
                               <thead className="bg-slate-900 text-slate-400 border-b border-slate-800 uppercase tracking-wider font-semibold">
                                 <tr>
@@ -470,8 +470,8 @@ export function LoansPage({ onNavigate }: LoansPageProps) {
 
         {/* Repayment Modal */}
         {isRepayModalOpen && selectedLoan && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-            <div className="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-6">
+          <div className="loanch-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="loanch-dialog w-full max-w-lg border p-6 space-y-6">
               <div className="flex justify-between items-center border-b border-slate-800 pb-4">
                 <div>
                   <h3 className="text-xl font-bold text-slate-100">Make Loan Payment</h3>
@@ -480,6 +480,7 @@ export function LoansPage({ onNavigate }: LoansPageProps) {
                 <button
                   onClick={() => setIsRepayModalOpen(false)}
                   className="text-slate-400 hover:text-slate-100 text-lg p-1"
+                  aria-label="Close repayment dialog"
                 >
                   ✕
                 </button>

@@ -13,8 +13,8 @@ export function ReputationPage({ onNavigate }: ReputationPageProps) {
   const milestones = DEMO_REPUTATION_MILESTONES
 
   return (
-    <div className="min-h-screen bg-slate-950 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="loanch-page loanch-secondary py-8">
+      <div className="loanch-container space-y-8">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">

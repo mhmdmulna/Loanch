@@ -16,7 +16,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="loanch-page flex min-h-screen flex-col text-slate-100">
       <Navbar currentPage={currentPage} onNavigate={navigate} />
       <main className="flex-1">
         {currentPage === "dashboard" && <Dashboard onNavigate={navigate} />}

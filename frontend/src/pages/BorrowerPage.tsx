@@ -58,19 +58,19 @@ export function BorrowerPage({ onNavigate }: BorrowerPageProps) {
   const handleConfirmRequest = async () => {
     setTxState("preparing")
     await new Promise(resolve => setTimeout(resolve, 1000))
-    
+
     setTxState("waiting-wallet")
     await new Promise(resolve => setTimeout(resolve, 1500))
-    
+
     setTxState("submitted")
     await new Promise(resolve => setTimeout(resolve, 1000))
-    
+
     setTxState("confirming")
     await new Promise(resolve => setTimeout(resolve, 2000))
-    
+
     setTxState("confirmed")
     await new Promise(resolve => setTimeout(resolve, 1000))
-    
+
     setShowSuccess(true)
     setShowReview(false)
     setLoanAmount("")
@@ -87,10 +87,10 @@ export function BorrowerPage({ onNavigate }: BorrowerPageProps) {
 
   return (
     <NetworkGuard>
-      <div className="min-h-screen bg-slate-950">
+      <div className="loanch-page loanch-secondary">
         {/* Header */}
         <div className="bg-slate-900 border-b border-slate-800">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="loanch-container max-w-4xl py-6">
             <Button variant="secondary" size="small" onClick={() => onNavigate("dashboard")} className="mb-4">
               ? Back to Dashboard
             </Button>
@@ -106,7 +106,7 @@ export function BorrowerPage({ onNavigate }: BorrowerPageProps) {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="loanch-container max-w-4xl py-8">
           {/* Success State */}
           {showSuccess && (
             <Card className="mb-8 border-emerald-500">
@@ -142,7 +142,7 @@ export function BorrowerPage({ onNavigate }: BorrowerPageProps) {
                     </div>
                     <Badge variant="warning">LOAN-001</Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
                     <div>
                       <div className="text-sm text-slate-400">Principal</div>
@@ -399,10 +399,10 @@ export function BorrowerPage({ onNavigate }: BorrowerPageProps) {
                       state={txState}
                       message={
                         txState === "preparing" ? "Preparing your loan request..." :
-                        txState === "waiting-wallet" ? "Please confirm the stake lock and loan request in your wallet" :
-                        txState === "submitted" ? "Loan request submitted to smart contract" :
-                        txState === "confirming" ? "Smart contract is processing your request..." :
-                        "Loan approved and funds disbursed!"
+                          txState === "waiting-wallet" ? "Please confirm the stake lock and loan request in your wallet" :
+                            txState === "submitted" ? "Loan request submitted to smart contract" :
+                              txState === "confirming" ? "Smart contract is processing your request..." :
+                                "Loan approved and funds disbursed!"
                       }
                     />
                   )}

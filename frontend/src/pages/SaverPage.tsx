@@ -89,10 +89,10 @@ export function SaverPage({ onNavigate }: SaverPageProps) {
 
   return (
     <NetworkGuard>
-      <div className="min-h-screen bg-slate-950">
+      <div className="loanch-page loanch-secondary">
         {/* Header */}
         <div className="bg-slate-900 border-b border-slate-800">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="loanch-container max-w-4xl py-6">
             <Button variant="secondary" size="small" onClick={() => onNavigate("dashboard")} className="mb-4">
               ? Back to Dashboard
             </Button>
@@ -108,7 +108,7 @@ export function SaverPage({ onNavigate }: SaverPageProps) {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="loanch-container max-w-4xl py-8">
           {/* Success State */}
           {showSuccess && (
             <Card className="mb-8 border-emerald-500">

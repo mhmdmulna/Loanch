@@ -10,11 +10,11 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  success: "bg-emerald-500/20 text-emerald-300",
-  warning: "bg-amber-500/20 text-amber-300",
-  error: "bg-rose-500/20 text-rose-300",
-  neutral: "bg-slate-700 text-slate-300",
-  pending: "bg-amber-500 bg-opacity-20 text-amber-200",
+  success: "bg-emerald-500/10 text-emerald-300 border-emerald-500/25",
+  warning: "bg-amber-500/10 text-amber-300 border-amber-500/25",
+  error: "bg-rose-500/10 text-rose-300 border-rose-500/25",
+  neutral: "bg-slate-800 text-slate-300 border-slate-700",
+  pending: "bg-amber-500/10 text-amber-200 border-amber-500/25",
 }
 
 export function Badge({
@@ -25,7 +25,7 @@ export function Badge({
   className = "",
 }: BadgeProps) {
   const baseStyles =
-    "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
+    "inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-[11px] font-semibold tracking-wide"
   const variantClass = variantStyles[variant]
   const animationClass = animated && variant === "pending" ? "animate-pulse" : ""
 

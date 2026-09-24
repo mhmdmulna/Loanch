@@ -6,14 +6,14 @@ interface FooterProps {
 
 export function Footer({ onNavigate }: FooterProps) {
   return (
-    <footer className="bg-slate-950 border-t border-slate-800 text-slate-400 text-sm mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <footer className="mt-auto border-t border-[var(--loanch-border)] bg-[var(--loanch-bg)] text-sm text-slate-400">
+      <div className="loanch-container py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand & mission */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-slate-100">Loanch</span>
-              <span className="text-xs uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span className="text-xl font-bold tracking-[-0.04em] text-slate-100">Loanch</span>
+              <span className="loanch-eyebrow text-[9px]">
                 BOT Chain
               </span>
             </div>

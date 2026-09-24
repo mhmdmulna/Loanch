@@ -18,13 +18,13 @@ const mockPoolData = {
 
 export function LandingPage({ onNavigate }: LandingPageProps) {
   return (
-    <div className="min-h-screen bg-slate-950">
-      <nav className="border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="loanch-page">
+      <nav className="border-b border-[var(--loanch-border)] bg-[var(--loanch-bg)]/95 backdrop-blur">
+        <div className="loanch-container">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <div className="text-xl font-bold text-slate-100">Loanch</div>
-              <div className="hidden sm:block text-xs font-semibold uppercase tracking-wide text-emerald-400">
+              <div className="text-xl font-bold tracking-[-0.04em] text-slate-100">Loanch</div>
+              <div className="loanch-eyebrow hidden sm:block text-[9px]">
                 Loan Chain Launch
               </div>
             </div>
@@ -38,12 +38,13 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </nav>
 
-      <section className="relative py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-6xl font-bold text-slate-100 mb-6">
+      <section className="relative border-b border-[var(--loanch-border)] py-20 sm:py-32">
+        <div className="loanch-container text-center">
+          <div className="loanch-eyebrow mb-5">Programmable lending · BOT Chain</div>
+          <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-semibold tracking-[-0.055em] text-slate-100 sm:text-6xl">
             Save. Borrow. Build trust on-chain.
           </h1>
-          <p className="text-xl text-slate-400 mb-8 max-w-3xl mx-auto">
+          <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-slate-400">
             Loanch is a programmable lending platform where deposits, loans, staking, repayments, 
             and returns are transparently managed by smart contracts on BOT Chain.
           </p>
@@ -56,10 +57,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="py-16 bg-slate-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="bg-[var(--loanch-surface)] py-16">
+        <div className="loanch-container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-100 mb-4">Live Pool Status</h2>
+            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-slate-100 mb-4">Live Pool Status</h2>
             <p className="text-slate-400">Real-time transparency into the Loanch lending pool</p>
             <div className="mt-2 text-xs text-amber-400 bg-amber-500/10 inline-block px-3 py-1 rounded-full">
               Demo Data - Contract Integration Pending
@@ -189,7 +190,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 </div>
               </div>
             </div>
-            <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20">
+            <Card className="border-emerald-500/20">
               <CardHeader>Save and Earn</CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -222,7 +223,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+          <Card className="border-slate-700">
               <CardHeader>Borrow with Confidence</CardHeader>
               <CardContent>
                 <div className="space-y-4">

@@ -24,8 +24,8 @@ export function PoolPage({ onNavigate }: PoolPageProps) {
   const fitsCapacity = projectedActiveLoans <= maxLendingCapacity
 
   return (
-    <div className="min-h-screen bg-slate-950 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="loanch-page loanch-secondary py-8">
+      <div className="loanch-container space-y-8">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
@@ -124,8 +124,8 @@ export function PoolPage({ onNavigate }: PoolPageProps) {
                 <span>Liquidity Reserve Floor (20.0%)</span>
               </div>
               <div className="h-4 w-full bg-slate-950 rounded-full overflow-hidden flex border border-slate-800">
-                <div className="h-full bg-blue-500 transition-all" style={{ width: "80%" }} title="80% Active Lending"></div>
-                <div className="h-full bg-amber-500 transition-all" style={{ width: "20%" }} title="20% Reserve"></div>
+                <div className="loanch-pool-bar h-full bg-blue-500" style={{ width: "80%" }} title="80% Active Lending"></div>
+                <div className="loanch-pool-bar h-full bg-amber-500" style={{ width: "20%" }} title="20% Reserve"></div>
               </div>
             </div>
           </CardContent>
