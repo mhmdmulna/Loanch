@@ -28,6 +28,8 @@ Loanch adalah sistem keuangan berbasis blockchain yang mempertemukan dua jenis p
 1. **Saver** — pengguna yang menyimpan dana.
 2. **Borrower** — pengguna yang membutuhkan pinjaman.
 
+Satu wallet dapat menjadi Saver sekaligus Borrower. Verifikasi identitas dilakukan satu kali di tingkat pengguna; penilaian risiko tambahan hanya diperlukan untuk pinjaman.
+
 Berbeda dengan marketplace pinjaman peer-to-peer biasa, saver di Loanch tidak perlu memilih secara langsung siapa yang akan menerima uangnya.
 
 Dana dari banyak saver dikumpulkan ke dalam sebuah **loan pool** yang dikelola oleh smart contract.
@@ -167,7 +169,7 @@ Rp100 juta
     └── Rp20 juta → Cadangan likuiditas
 ```
 
-Rasio tersebut merupakan parameter sistem dan dapat diubah sesuai desain ekonomi Loanch.
+Rasio tersebut merupakan parameter sistem dan dapat diubah sesuai desain ekonomi Loanch. **Cadangan likuiditas 20% tetap bagian dari pokok Saver**, hanya belum dipinjamkan. Cadangan kerugian adalah dana lain yang dikumpulkan dari bagian margin 5%; keduanya tidak boleh dihitung sebagai dana yang sama.
 
 ---
 
@@ -205,7 +207,6 @@ Saver
 ├── Deposit Amount
 ├── Deposit Timestamp
 ├── Withdrawable Amount
-├── Pending Withdrawal
 └── Accumulated Return
 ```
 
@@ -224,11 +225,9 @@ Borrower
    ↓
 Identity Verified?
    ↓
-Eligible?
-   ↓
-Stake Sufficient?
-   ↓
 Risk Requirement Passed?
+   ↓
+Stake Already Locked and Sufficient?
    ↓
 Liquidity Available?
    ↓
@@ -276,6 +275,8 @@ Verification Result
        ↓
 Blockchain
 ```
+
+Status identitas melekat pada pengguna dan berlaku untuk kedua aktivitasnya. Pada MVP admin tepercaya dapat mengatur status verifikasi sederhana; dokumen identitas tidak disimpan di blockchain.
 
 Smart contract cukup menerima informasi seperti:
 
@@ -345,7 +346,7 @@ Loan Eligible
 
 Staking digunakan sebagai bentuk **skin in the game**.
 
-Borrower mengunci sejumlah aset sebelum atau selama pinjaman berjalan.
+Borrower mengunci aset sebelum mengajukan pinjaman. Kontrak memeriksa stake terkunci yang cukup sebelum mencairkan loan. Jika wallet tersebut juga Saver, depositnya tetap dipisahkan dari stake dan tidak otomatis menjadi jaminan.
 
 Contoh:
 
@@ -395,13 +396,7 @@ Ia berfungsi sebagai mesin aturan finansial yang mengelola dana dan status trans
 
 ### 11.1 Deposit
 
-Fungsi:
-
-```text
-deposit(amount)
-```
-
-Tugas:
+Perilaku:
 
 - menerima aset pengguna,
 - mencatat posisi deposit,
@@ -413,50 +408,20 @@ Tugas:
 
 ### 11.2 Withdrawal
 
-Fungsi:
-
-```text
-requestWithdrawal(amount)
-```
-
-Smart contract memeriksa apakah dana likuid tersedia.
-
-```text
-IF
-Available Liquidity >= Withdrawal Amount
-
-THEN
-Allow Withdrawal
-```
-
-Jika dana tidak cukup:
-
-```text
-Withdrawal Request
-        ↓
-Withdrawal Queue
-        ↓
-Wait for Liquidity
-```
+Saver dapat menarik haknya ketika likuiditas cukup. Penarikan tidak boleh memakai stake terkunci, dana platform, atau melebihi hak Saver. Bila likuiditas kurang, transaksi gagal seluruhnya tanpa antrean dan dapat dicoba lagi setelah ada dana masuk. **Withdrawal queue masuk future scope**, bukan MVP.
 
 ---
 
 ### 11.3 Loan Request
 
-Fungsi:
-
-```text
-requestLoan(amount, duration)
-```
-
-Smart contract memeriksa:
+Borrower telah diverifikasi, lolos penilaian risiko, dan mengunci stake sebelum mengajukan pinjaman. Smart contract memeriksa:
 
 ```text
 Identity Verified?
         ↓
 Risk Requirement Passed?
         ↓
-Minimum Stake Available?
+Minimum Stake Locked?
         ↓
 Loan Limit Passed?
         ↓
@@ -469,13 +434,7 @@ Approve / Reject
 
 ### 11.4 Loan Creation
 
-Jika permintaan memenuhi aturan:
-
-```text
-createLoan()
-```
-
-Smart contract membuat posisi pinjaman:
+Jika permintaan memenuhi aturan, smart contract membuat posisi pinjaman:
 
 ```text
 Loan #001
@@ -506,11 +465,7 @@ Total dana tersedia diperbarui secara otomatis.
 
 ### 11.6 Repayment
 
-Fungsi:
-
-```text
-repayLoan(loanId, amount)
-```
+Pembayaran melunasi sisa pokok lebih dahulu, lalu margin.
 
 Contoh:
 
@@ -553,25 +508,9 @@ Update Reputation
 
 ### 11.8 Default Handling
 
-Jika pembayaran melewati aturan keterlambatan:
+MVP menerapkan masa tenggang **7 hari** setelah jatuh tempo. Bila utang masih tersisa setelah masa tenggang, siapa pun dapat mengirim transaksi untuk menandai loan `Defaulted`. Kontrak tidak berubah status sendiri ketika waktu berlalu; sebelum transaksi default, borrower masih boleh membayar.
 
-```text
-Payment Overdue
-      ↓
-Grace Period
-      ↓
-Still Unpaid?
-      ↓
-Default Procedure
-```
-
-Default procedure dapat mencakup:
-
-- perubahan status pinjaman,
-- pengurangan reputasi,
-- slashing staking,
-- penggunaan reserve fund,
-- pembatasan pinjaman berikutnya.
+Saat default terjadi satu kali, stake loan dipotong sebatas sisa pokok, cadangan kerugian yang berasal dari return menutup kekurangan berikutnya sebatas saldo yang ada, dan sisa kerugian pokok mengurangi klaim pokok Saver secara proporsional. Stake berlebih dikembalikan. Cadangan likuiditas dari deposit Saver bukan dana penanggung rugi terpisah. Margin yang belum dibayar bukan keuntungan. Reputasi borrower turun **20 poin** (minimum nol), dan ia tidak dapat mengambil loan baru pada MVP. Pemulihan setelah default merupakan future scope. Rumus pembukuan ada di `PRD.md`.
 
 ---
 
@@ -595,8 +534,12 @@ Loanch dapat menentukan pembagian:
 ```text
 80% → Saver
 15% → Platform
-5%  → Reserve
+5%  → Cadangan kerugian
 ```
+
+Bagian Saver dibagikan menurut **share deposit aktif × bobot Saver** ketika margin diterima. Nilai awal bobot semua Saver adalah 1× sehingga hasilnya pro-rata: jika Alice memiliki 10% dan Budi 90% share, keduanya menerima 10% dan 90% dari bagian Saver. Deposit sesudah pembayaran tidak memperoleh return lama. Admin tepercaya dapat mengubah bobot pengguna dalam batas 0,5×–2× dan perubahan berlaku untuk margin berikutnya, tanpa menghitung ulang hak lama. Bobot yang berbeda dari 1× harus ditampilkan kepada pengguna karena mengubah pembagian.
+
+80/15/5 adalah nilai awal. Admin tepercaya dapat mengubah ketiga persentase on-chain dengan total tetap 100%; perubahan hanya berlaku untuk margin yang diterima sesudahnya. Bobot Saver juga dapat diubah satu per satu secara on-chain. Hak yang telah diperoleh tidak dihitung ulang. Perubahan ke algoritme lain, seperti bobot berbasis lama simpan, memerlukan versi kontrak dan migrasi yang ditinjau.
 
 Smart contract menjalankan pembagian secara otomatis.
 
@@ -604,7 +547,7 @@ Smart contract menjalankan pembagian secara otomatis.
 
 ## 12. Liquidity Reserve
 
-Loanch tidak boleh meminjamkan seluruh dana pengguna.
+Loanch tidak boleh meminjamkan seluruh dana pengguna. Cadangan likuiditas adalah bagian dari klaim pokok Saver; cadangan kerugian yang berasal dari margin adalah saldo terpisah untuk menanggung default. Penarikan Saver dapat menggunakan cadangan likuiditas jika tersedia, sehingga nilai target cadangan dihitung lagi setelah penarikan.
 
 Contoh:
 
@@ -821,6 +764,8 @@ dapat dibuat lebih transparan dan dapat diverifikasi.
 
 ### Tahap 1 — Deposit
 
+Alice, Budi, dan Citra telah memiliki identitas terverifikasi.
+
 Alice:
 
 ```text
@@ -854,7 +799,13 @@ Rp10 juta → Liquidity Reserve
 
 ---
 
-### Tahap 2 — Loan Request
+### Tahap 2 — Verifikasi dan Staking
+
+Dani telah diverifikasi dan lolos penilaian risiko, lalu mengunci stake Rp1 juta ekuivalen aset.
+
+---
+
+### Tahap 3 — Loan Request
 
 Dani mengajukan:
 
@@ -871,29 +822,12 @@ Sistem memeriksa:
 ```text
 Identity Verified      ✓
 Risk Requirement       ✓
-Minimum Stake          ✓
+Stake Locked           ✓
 Loan Limit             ✓
 Available Liquidity    ✓
 ```
 
 Pinjaman disetujui.
-
----
-
-### Tahap 3 — Staking
-
-Dani mengunci:
-
-```text
-Rp1 juta equivalent asset
-```
-
-Status:
-
-```text
-Stake = Locked
-Loan = Active
-```
 
 ---
 
@@ -951,9 +885,9 @@ Aturan:
 Hasil:
 
 ```text
-Rp800 ribu → Saver Pool
+Rp800 ribu → Saver (Alice Rp160 ribu, Budi Rp320 ribu, Citra Rp320 ribu)
 Rp150 ribu → Platform
-Rp50 ribu  → Reserve
+Rp50 ribu  → Cadangan kerugian
 ```
 
 ---
@@ -1116,7 +1050,9 @@ Versi awal dapat fokus pada:
 8. Pencairan pinjaman.
 9. Pembayaran pinjaman.
 10. Distribusi hasil.
-11. Dashboard transparansi pool.
+11. Default: stake slashing, cadangan kerugian dari return, kerugian Saver, penalti reputasi.
+12. Penarikan langsung atau gagal ketika likuiditas kurang.
+13. Dashboard transparansi pool.
 
 Fitur seperti penilaian risiko kompleks, integrasi aset dunia nyata, mekanisme hukum, dan model likuiditas lanjutan dapat menjadi pengembangan berikutnya.
 
@@ -1229,9 +1165,9 @@ Deposit
    ↓
 Liquidity
    ↓
-Loan
-   ↓
 Staking
+   ↓
+Loan
    ↓
 Repayment
    ↓

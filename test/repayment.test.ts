@@ -1,0 +1,61 @@
+import assert from "node:assert/strict";
+import { expect } from "chai";
+import { deployFixture } from "./fixture.ts";
+
+describe("LoanchPool repayment and distribution", function () {
+  it("pays principal before margin, completes the loan, unlocks stake and pays 80/15/5", async function () {
+    const { pool, token, saverA, saverB, borrower } = await deployFixture();
+    for (const user of [saverA, saverB, borrower]) await (await pool.setIdentityVerification(user.address, true)).wait();
+    await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
+    await (await pool.connect(saverA).deposit(1_000n)).wait();
+    await (await pool.connect(saverB).deposit(3_000n)).wait();
+    await (await pool.connect(borrower).stake(50n)).wait();
+    await (await pool.connect(borrower).requestLoan(1_000n, 86400n)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, 600n)).wait();
+    expect((await pool.getLoan(1n)).principalOutstanding).to.equal(400n);
+    expect((await pool.getLoan(1n)).status).to.equal(1n);
+    expect(await pool.saverReturnLiability()).to.equal(0n);
+    await (await pool.connect(borrower).repayLoan(1n, 400n)).wait();
+    expect((await pool.getLoan(1n)).principalOutstanding).to.equal(0n);
+    expect(await pool.saverReturnLiability()).to.equal(0n);
+    await assert.rejects(pool.connect(borrower).repayLoan(1n, 101n), /Overpayment/);
+    await (await pool.connect(borrower).repayLoan(1n, 100n)).wait();
+    expect((await pool.getLoan(1n)).status).to.equal(2n);
+    expect(await pool.activeLoanPrincipal()).to.equal(0n);
+    expect(await pool.totalLockedStake()).to.equal(0n);
+    expect(await pool.allocatedStake(borrower.address)).to.equal(0n);
+    expect(await pool.saverReturnLiability()).to.equal(80n);
+    expect(await pool.platformRevenue()).to.equal(15n);
+    expect(await pool.lossReserveAmount()).to.equal(5n);
+    expect(await pool.claimableReturn(saverA.address)).to.equal(20n);
+    expect(await pool.claimableReturn(saverB.address)).to.equal(60n);
+    const before = await token.balanceOf(saverA.address);
+    await (await pool.connect(saverA).claimReturn()).wait();
+    expect(await token.balanceOf(saverA.address)).to.equal(before + 20n);
+    expect((await pool.getSaverPosition(saverA.address)).principalClaim).to.equal(1_000n);
+    await assert.rejects(pool.connect(saverA).claimReturn(), /NothingToClaim/);
+    await assert.rejects(pool.connect(borrower).repayLoan(1n, 1n), /InvalidLoanState/);
+    expect((await pool.getBorrowerProfile(borrower.address)).reputation).to.equal(55n);
+  });
+
+  it("settles old rewards before deposits, weight changes and future BPS changes", async function () {
+    const { pool, saverA, saverB, borrower } = await deployFixture();
+    for (const user of [saverA, saverB, borrower]) await (await pool.setIdentityVerification(user.address, true)).wait();
+    await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
+    await (await pool.connect(saverA).deposit(2_000n)).wait();
+    await (await pool.connect(borrower).stake(50n)).wait();
+    await (await pool.connect(borrower).requestLoan(1_000n, 86400n)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, 1_050n)).wait();
+    expect(await pool.claimableReturn(saverA.address)).to.equal(40n);
+    await (await pool.connect(saverB).deposit(2_000n)).wait();
+    expect(await pool.claimableReturn(saverB.address)).to.equal(0n);
+    await (await pool.setSaverWeight(saverA.address, 20_000)).wait();
+    await (await pool.setDistributionBps(6_000, 3_000, 1_000)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, 50n)).wait();
+    expect(await pool.claimableReturn(saverA.address)).to.equal(60n);
+    expect(await pool.claimableReturn(saverB.address)).to.equal(10n);
+    expect(await pool.platformRevenue()).to.equal(22n);
+    expect(await pool.lossReserveAmount()).to.equal(8n);
+    expect(await pool.saverReturnLiability()).to.equal(70n);
+  });
+});
