@@ -1,16 +1,19 @@
-import { useCallback, useEffect, useState, type MouseEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import {
   ArrowDownLeft, ArrowRight, ArrowUpRight, Check, ChevronRight,
   Copy, ExternalLink, FileText, Landmark, Menu, Network, ShieldCheck, Wallet, X,
 } from 'lucide-react'
 import { LOANCH_CONTRACT_ADDRESS } from '../contracts/addresses'
 import { botChainConfig } from '../contracts/config'
+import { actionError, amountText, eligibilityText, parseAmount, previewLoan, readActivity, readLoan, readTransaction, submitAction, type ActionKind, type ActivityItem, type Loan, type TxProgress } from '../contracts/loanch'
 import { expectedChainId, shortAddress, useWallet, type WalletState } from './useWallet'
+import { usePool } from './usePool'
 import './app.css'
 
 type Wallet = ReturnType<typeof useWallet>
+type Pool = ReturnType<typeof usePool>
 type TransactionStage = 'idle' | 'awaiting-wallet' | 'submitted' | 'confirming' | 'confirmed' | 'failed'
-type FormKind = 'deposit' | 'withdraw' | 'request' | 'repay'
+type FormKind = Exclude<ActionKind, 'claim'>
 
 const nav = [
   { href: '/app', label: 'App Entry' },
@@ -106,8 +109,13 @@ function DataLine({ label, value, hint }: { label: string; value: string; hint?:
   return <div className="la-data-line"><span>{label}{hint && <small>{hint}</small>}</span><strong>{value}</strong></div>
 }
 
-function UnavailableMetric({ label, detail }: { label: string; detail: string }) {
-  return <div className="la-metric"><h3>{label}</h3><strong aria-label={`${label} unavailable`}>—</strong><p>{detail}</p></div>
+function Metric({ label, value, detail }: { label: string; value: string; detail?: string }) {
+  return <div className="la-metric"><h3>{label}</h3><strong>{value}</strong>{detail && <p>{detail}</p>}</div>
+}
+
+function PoolNotice({ pool }: { pool: Pool }) {
+  return pool.error ? <Notice tone="warning">{pool.error}</Notice>
+    : pool.loading ? <Notice>Reading verified pool data…</Notice> : null
 }
 
 function TransactionStatusTracker({ stage = 'idle' }: { stage?: TransactionStage }) {
@@ -195,98 +203,182 @@ function AccessNote({ wallet }: { wallet: Wallet }) {
   return wallet.status === 'connected' ? null : <WalletPanel wallet={wallet} compact />
 }
 
-function SaveDashboard({ wallet, navigate }: { wallet: Wallet; navigate: (href: string) => void }) {
+function PoolActionButton({ kind, wallet, pool }: { kind: 'claim'; wallet: Wallet; pool: Pool }) {
+  const inFlight = useRef(false)
+  const [progress, setProgress] = useState<TxProgress>({ stage: 'idle', label: '' })
+  const [failure, setFailure] = useState('')
+  const busy = progress.stage === 'awaiting-wallet' || progress.stage === 'submitted' || progress.stage === 'confirming'
+  const run = async () => {
+    if (!pool.data || wallet.status !== 'connected' || inFlight.current) return
+    inFlight.current = true
+    setFailure('')
+    try {
+      await submitAction({ kind }, wallet.address, pool.data, setProgress)
+      pool.refresh()
+    } catch (cause) {
+      setProgress(previous => ({ ...previous, stage: 'failed' }))
+      setFailure(actionError(cause))
+    } finally { inFlight.current = false }
+  }
+  return <div className="la-action-result">
+    <button className="la-button la-button--primary" type="button" disabled={busy || progress.stage === 'confirmed'} onClick={() => void run()}>Claim return</button>
+    {progress.stage !== 'idle' && <p role="status">{progress.label}</p>}
+    {progress.hash && <a href={'/app/transactions/' + progress.hash}>View transaction {shortAddress(progress.hash)}</a>}
+    {failure && <p role="alert">{failure}</p>}
+    {progress.stage !== 'idle' && <TransactionStatusTracker stage={progress.stage} />}
+  </div>
+}
+
+function SaveDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Pool; navigate: (href: string) => void }) {
+  const data = pool.data
   return <>
     <PageHeader title="Save" description="Your deposit position and the actions available for the shared pool.">
       <ActionLink href="/app/save/deposit" navigate={navigate}>Deposit funds</ActionLink>
       <ActionLink href="/app/save/withdraw" navigate={navigate} secondary>Withdraw</ActionLink>
     </PageHeader>
     <AccessNote wallet={wallet} />
+    <PoolNotice pool={pool} />
     <div className="la-dashboard-grid">
       <div className="la-feature-panel">
-        <h2>Your savings</h2><p>Position data will appear here when the contract read integration is available.</p>
-        <div className="la-figure" aria-label="Savings balance unavailable">— <span>pool asset units</span></div>
-        <DataLine label="Deposited principal" value="Unavailable" />
-        <DataLine label="Accumulated return" value="Unavailable" />
-        <DataLine label="Withdrawable amount" value="Unavailable" />
+        <h2>Your savings</h2><p>Amounts are read from the configured pool contract.</p>
+        <div className="la-figure">{data?.saver ? amountText(data.saver.principalClaim, data) : '—'}</div>
+        <DataLine label="Principal claim" value={amountText(data?.saver?.principalClaim, data)} />
+        <DataLine label="Claimable return" value={amountText(data?.saver?.claimableReturn, data)} />
+        <DataLine label="Withdrawable now" value={amountText(data?.withdrawable, data)} />
+        <DataLine label="Wallet balance" value={amountText(data?.walletBalance, data)} />
+        {data?.saver && data.saver.claimableReturn > 0n && <PoolActionButton kind="claim" wallet={wallet} pool={pool} />}
       </div>
       <div className="la-side-panel">
-        <h2>Next action</h2><p>Review a deposit or withdrawal. The contract actions are not connected yet, so no funds will move.</p>
+        <h2>Next action</h2><p>Review the amount and confirm the pool transaction in MetaMask.</p>
         <div className="la-stack-actions">
           <ActionLink href="/app/save/deposit" navigate={navigate}>Prepare deposit</ActionLink>
           <ActionLink href="/app/save/withdraw" navigate={navigate} secondary>Prepare withdrawal</ActionLink>
         </div>
       </div>
     </div>
-    <Section title="Pool context" description="Current pool figures require a live contract read.">
-      <div className="la-metric-grid"><UnavailableMetric label="Pool liquidity" detail="Live value unavailable" /><UnavailableMetric label="Your pool share" detail="Live value unavailable" /><UnavailableMetric label="Saver weight" detail="Live value unavailable" /></div>
+    <Section title="Pool context" description="Values read from the configured pool contract.">
+      <div className="la-metric-grid"><Metric label="Pool liquidity" value={amountText(data?.stats.liquidPoolAssets, data)} /><Metric label="Your pool share" value={data?.saver && data.stats.totalShares > 0n ? `${(Number(data.saver.shares * 10000n / data.stats.totalShares) / 100).toFixed(2)}%` : 'Unavailable'} /><Metric label="Saver weight" value={data?.saver ? `${Number(data.saver.weightBps || 10000n) / 10000}×` : 'Unavailable'} /></div>
     </Section>
   </>
 }
 
-function BorrowDashboard({ wallet, navigate }: { wallet: Wallet; navigate: (href: string) => void }) {
+function BorrowDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Pool; navigate: (href: string) => void }) {
+  const data = pool.data
+  const loan = data?.activeLoan
   return <>
     <PageHeader title="Borrow" description="Check your loan status, then prepare a request or repayment.">
       <ActionLink href="/app/borrow/request" navigate={navigate}>Request a loan</ActionLink>
       <ActionLink href="/app/borrow/repay" navigate={navigate} secondary>Repay a loan</ActionLink>
+      <ActionLink href="/app/borrow/stake" navigate={navigate} secondary>Manage stake</ActionLink>
     </PageHeader>
     <AccessNote wallet={wallet} />
+    <PoolNotice pool={pool} />
     <div className="la-dashboard-grid">
       <div className="la-feature-panel">
-        <h2>Your borrowing</h2><p>Loan and repayment data is not connected to a live source yet.</p>
-        <div className="la-figure" aria-label="Outstanding debt unavailable">— <span>pool asset units</span></div>
-        <DataLine label="Active loan" value="Unavailable" />
-        <DataLine label="Amount repaid" value="Unavailable" />
-        <DataLine label="Locked stake" value="Unavailable" />
+        <h2>Your borrowing</h2><p>Active position read from the pool contract.</p>
+        <div className="la-figure">{data ? amountText(loan ? loan.totalRepayment - loan.amountPaid : 0n, data) : '—'}</div>
+        <DataLine label="Active loan" value={loan ? `#${loan.id}` : data ? 'None' : 'Unavailable'} />
+        <DataLine label="Amount repaid" value={amountText(loan?.amountPaid ?? (data ? 0n : null), data)} />
+        <DataLine label="Allocated stake" value={amountText(data?.allocatedStake, data)} />
+        <DataLine label="Free stake" value={amountText(data?.freeStake, data)} />
       </div>
       <div className="la-side-panel">
         <h2>Before you request</h2>
-        <p>Identity verification, risk eligibility, required stake, loan limit, and pool liquidity must be checked using real sources.</p>
+        <p>Identity verification, risk, free stake, loan limit, and liquidity are checked on-chain before a request.</p>
         <ActionLink href="/app/borrow/request" navigate={navigate}>Review requirements</ActionLink>
       </div>
     </div>
-    <Section title="Loan history">
-      <EmptyState title="Loan data unavailable" description="No live loan source is connected. Existing loans will appear here once the contract read integration is available." />
+    <Section title="Borrower position">
+      <div className="la-panel">
+        <DataLine label="Identity verified" value={data ? data.verified ? 'Yes' : 'No' : 'Unavailable'} />
+        <DataLine label="Risk score" value={data?.borrower?.riskScore.toString() ?? 'Unavailable'} />
+        <DataLine label="Reputation" value={data?.borrower?.reputation.toString() ?? 'Unavailable'} />
+        {loan && <ActionLink href={`/app/borrow/loan/${loan.id}`} navigate={navigate}>View active loan</ActionLink>}
+      </div>
     </Section>
   </>
 }
 
-const formContent: Record<FormKind, { title: string; description: string; label: string; preview: string; blocked: string }> = {
+const formContent: Record<FormKind, { title: string; description: string; label: string; preview: string }> = {
   deposit: {
-    title: 'Deposit funds', description: 'Prepare an amount to deposit into the shared loan pool.',
+    title: 'Deposit funds', description: 'Deposit the pool asset into the shared loan pool.',
     label: 'Deposit amount', preview: 'Amount to deposit',
-    blocked: 'Deposits are unavailable until the pool asset and contract write integration are connected.',
   },
   withdraw: {
-    title: 'Withdraw', description: 'Review the amount you want to withdraw from your Saver position.',
+    title: 'Withdraw', description: 'Withdraw available Saver principal.',
     label: 'Withdrawal amount', preview: 'Amount to withdraw',
-    blocked: 'Your withdrawable position and available liquidity cannot be verified yet. Withdrawal is unavailable.',
   },
   request: {
-    title: 'Request a loan', description: 'Prepare a request. Eligibility and liquidity must be confirmed from live sources.',
+    title: 'Request a loan', description: 'Check eligibility before signing a loan request.',
     label: 'Requested amount', preview: 'Requested principal',
-    blocked: 'Identity, risk, stake, loan limit, and pool liquidity are not connected. Loan requests are unavailable.',
   },
   repay: {
-    title: 'Repay a loan', description: 'Repayment requires a real active loan and a verified outstanding amount.',
+    title: 'Repay a loan', description: 'Repay your active loan using the pool asset.',
     label: 'Repayment amount', preview: 'Amount to repay',
-    blocked: 'No active loan source is connected. Repayment is unavailable.',
   },
+  stake: { title: 'Stake', description: 'Lock the pool asset as free borrower stake.', label: 'Stake amount', preview: 'Amount to stake' },
+  unstake: { title: 'Unstake', description: 'Withdraw free stake that is not allocated to a loan.', label: 'Unstake amount', preview: 'Amount to unstake' },
 }
 
-function FinancialForm({ kind, wallet, navigate }: { kind: FormKind; wallet: Wallet; navigate: (href: string) => void }) {
+function FinancialForm({ kind, wallet, pool, navigate }: { kind: FormKind; wallet: Wallet; pool: Pool; navigate: (href: string) => void }) {
+  const inFlight = useRef(false)
   const [amount, setAmount] = useState('')
+  const [days, setDays] = useState('30')
   const [reviewing, setReviewing] = useState(false)
+  const [previewState, setPreviewState] = useState<{ key: string; result?: { reason: bigint; stakeRequired: bigint }; error?: string } | null>(null)
+  const [progress, setProgress] = useState<TxProgress>({ stage: 'idle', label: '' })
+  const [failure, setFailure] = useState('')
   const details = formContent[kind]
+  const data = pool.data
   const backHref = kind === 'deposit' || kind === 'withdraw' ? '/app/save' : '/app/borrow'
-  const amountValid = /^(?:\d+)(?:\.\d+)?$/.test(amount) && /[1-9]/.test(amount)
-  const canEnter = wallet.status === 'connected' && (kind === 'deposit' || kind === 'request')
+  let parsedAmount: bigint | null = null
+  let amountError = ''
+  try { if (data && amount) parsedAmount = parseAmount(amount, data) } catch (cause) { amountError = cause instanceof Error ? cause.message : 'Invalid amount.' }
+  const duration = Number(days)
+  const durationValid = Number.isInteger(duration) && duration >= 1 && duration <= 365
+  const previewKey = wallet.address + ':' + amount + ':' + days
+  const preview = previewState?.key === previewKey ? previewState.result : null
+  const previewError = previewState?.key === previewKey ? previewState.error : ''
+  const busy = progress.stage === 'awaiting-wallet' || progress.stage === 'submitted' || progress.stage === 'confirming'
+  const limit = kind === 'withdraw' ? data?.withdrawable
+    : kind === 'unstake' ? data?.freeStake
+      : kind === 'repay' && data?.activeLoan ? (data.walletBalance < data.activeLoan.totalRepayment - data.activeLoan.amountPaid ? data.walletBalance : data.activeLoan.totalRepayment - data.activeLoan.amountPaid)
+        : kind === 'deposit' || kind === 'stake' || kind === 'repay' ? data?.walletBalance : null
+  const overLimit = parsedAmount !== null && limit !== null && limit !== undefined && parsedAmount > limit
+  const requestBlocked = kind === 'request' && (!durationValid || preview?.reason !== 0n)
+  const canReview = wallet.status === 'connected' && Boolean(data && parsedAmount && !overLimit && (kind !== 'request' || durationValid) && (kind !== 'repay' || data?.activeLoan) && (kind !== 'deposit' || data?.verified))
+  const canConfirm = canReview && !requestBlocked && !busy && progress.stage !== 'confirmed'
+
+  useEffect(() => {
+    if (kind !== 'request' || !reviewing || !parsedAmount || !durationValid || !wallet.address) return
+    let current = true
+    void previewLoan(wallet.address, parsedAmount, duration).then(result => {
+      if (current) setPreviewState({ key: previewKey, result })
+    }).catch(cause => {
+      if (current) setPreviewState({ key: previewKey, error: cause instanceof Error ? cause.message : 'Could not check loan eligibility.' })
+    })
+    return () => { current = false }
+  }, [kind, reviewing, parsedAmount, duration, durationValid, wallet.address, previewKey])
+
+  const submit = async () => {
+    if (!data || !parsedAmount || !canConfirm || inFlight.current) return
+    inFlight.current = true
+    setFailure('')
+    try {
+      await submitAction({ kind, amount: parsedAmount, durationDays: duration, loanId: data.activeLoan?.id }, wallet.address, data, setProgress)
+      pool.refresh()
+    } catch (cause) {
+      setProgress(previous => ({ ...previous, stage: 'failed' }))
+      setFailure(actionError(cause))
+    } finally { inFlight.current = false }
+  }
 
   return <>
     <PageHeader title={details.title} description={details.description}>
       <ActionLink href={backHref} navigate={navigate} secondary>Back to {kind === 'deposit' || kind === 'withdraw' ? 'Save' : 'Borrow'}</ActionLink>
     </PageHeader>
     <AccessNote wallet={wallet} />
+    <PoolNotice pool={pool} />
     <div className="la-flow-grid">
       <div className="la-form-panel">
         <h2>{reviewing ? 'Review details' : 'Enter amount'}</h2>
@@ -294,74 +386,147 @@ function FinancialForm({ kind, wallet, navigate }: { kind: FormKind; wallet: Wal
           <label className="la-field" htmlFor="loanch-amount"><span>{details.label}</span><span className="la-input-wrap"><input
             id="loanch-amount" type="text" inputMode="decimal" autoComplete="off" value={amount}
             onChange={event => setAmount(event.target.value)} placeholder="0.00"
-            disabled={!canEnter} aria-describedby="loanch-amount-hint"
-            aria-invalid={amount.length > 0 && !amountValid}
-          /><span>asset units</span></span></label>
-          <p className="la-field-hint" id="loanch-amount-hint">Enter an amount in the pool asset. Asset details and limits are not available yet.</p>
-          {amount.length > 0 && !amountValid && <p className="la-field-error" role="alert">Enter an amount greater than zero.</p>}
-          <button className="la-button la-button--primary" type="button" disabled={!canEnter || !amountValid} onClick={() => setReviewing(true)}>Review {kind === 'request' ? 'request' : kind}<ArrowRight size={17} aria-hidden="true" /></button>
+            disabled={!data || wallet.status !== 'connected'} aria-describedby="loanch-amount-hint"
+            aria-invalid={Boolean(amount && amountError)}
+          /><span>{data?.assetSymbol ?? 'asset'}</span></span></label>
+          <p className="la-field-hint" id="loanch-amount-hint">Pool asset: {data?.assetSymbol ?? 'loading'} · {data?.decimals ?? '—'} decimals.</p>
+          {amountError && <p className="la-field-error" role="alert">{amountError}</p>}
+          {overLimit && <p className="la-field-error" role="alert">Amount exceeds the available limit.</p>}
+          {kind === 'request' && <label className="la-field" htmlFor="loanch-duration"><span>Duration in days</span><span className="la-input-wrap"><input id="loanch-duration" type="number" min="1" max="365" step="1" value={days} onChange={event => setDays(event.target.value)} /></span></label>}
+          {kind === 'request' && !durationValid && <p className="la-field-error" role="alert">Duration must be 1–365 days.</p>}
+          {kind === 'deposit' && data?.verified === false && <p className="la-field-error" role="alert">Identity verification by the pool admin is required before depositing.</p>}
+          {kind === 'repay' && data && !data.activeLoan && <p className="la-field-error" role="alert">There is no active loan to repay.</p>}
+          <button className="la-button la-button--primary" type="button" disabled={!canReview} onClick={() => setReviewing(true)}>Review {kind}<ArrowRight size={17} aria-hidden="true" /></button>
         </> : <>
-          <div className="la-review"><DataLine label={details.preview} value={`${amount} asset units`} /><DataLine label="From wallet" value={wallet.address ? shortAddress(wallet.address) : 'Unavailable'} /><DataLine label="Network" value={expectedChainId?.toString() ?? 'Not configured'} /><DataLine label="Execution" value="Unavailable" /></div>
-          <Notice tone="warning">{details.blocked} No transaction will be sent.</Notice>
-          <div className="la-inline-actions"><button className="la-button la-button--secondary" type="button" onClick={() => setReviewing(false)}>Edit amount</button><button className="la-button la-button--primary" type="button" disabled>Confirm {kind}</button></div>
+          <div className="la-review">
+            <DataLine label={details.preview} value={parsedAmount !== null ? amountText(parsedAmount, data) : 'Unavailable'} />
+            <DataLine label="From wallet" value={wallet.address ? shortAddress(wallet.address) : 'Unavailable'} />
+            <DataLine label="Pool contract" value={LOANCH_CONTRACT_ADDRESS || 'Unavailable'} />
+            <DataLine label="Network" value={expectedChainId?.toString() ?? 'Not configured'} />
+            {kind === 'request' && <DataLine label="Duration" value={days + ' days'} />}
+            {kind === 'request' && <DataLine label="Required stake" value={amountText(preview?.stakeRequired, data)} />}
+            {kind === 'request' && <DataLine label="Eligibility" value={preview ? eligibilityText(preview.reason) : previewError || 'Checking…'} />}
+            {kind === 'repay' && <DataLine label="Loan ID" value={data?.activeLoan?.id.toString() ?? 'No active loan'} />}
+          </div>
+          {requestBlocked && preview?.reason !== undefined && <Notice tone="warning">{eligibilityText(preview.reason)}. Resolve this before requesting.</Notice>}
+          {failure && <Notice tone="warning">{failure}</Notice>}
+          {progress.stage === 'confirmed' && <Notice tone="success">Confirmed on-chain. Account data is refreshing.</Notice>}
+          {progress.hash && <ActionLink href={'/app/transactions/' + progress.hash} navigate={navigate} secondary>View transaction</ActionLink>}
+          <div className="la-inline-actions"><button className="la-button la-button--secondary" type="button" disabled={busy} onClick={() => setReviewing(false)}>Edit amount</button><button className="la-button la-button--primary" type="button" disabled={!canConfirm} onClick={() => void submit()}>{busy ? 'Waiting…' : 'Confirm ' + kind}</button></div>
         </>}
       </div>
       <div className="la-flow-aside">
-        <Notice tone="warning">{details.blocked}</Notice>
-        {kind === 'request' && <div className="la-requirements">
-          <h2>Eligibility checks</h2>
-          {['Identity verification', 'Risk requirement', 'Available stake', 'Loan limit', 'Pool liquidity'].map(item => <DataLine key={item} label={item} value="Unavailable" />)}
-        </div>}
-        {(kind === 'withdraw' || kind === 'repay') && <EmptyState title={kind === 'withdraw' ? 'Position unavailable' : 'Active loan unavailable'} description="The amount available for this action must come from a live contract read." />}
-        <TransactionStatusTracker />
+        <div className="la-requirements">
+          <h2>Live limits</h2>
+          <DataLine label="Wallet balance" value={amountText(data?.walletBalance, data)} />
+          {kind === 'withdraw' && <DataLine label="Withdrawable" value={amountText(data?.withdrawable, data)} />}
+          {(kind === 'stake' || kind === 'unstake' || kind === 'request') && <DataLine label="Free stake" value={amountText(data?.freeStake, data)} />}
+          {kind === 'repay' && <DataLine label="Remaining debt" value={amountText(data?.activeLoan ? data.activeLoan.totalRepayment - data.activeLoan.amountPaid : null, data)} />}
+          {kind === 'request' && <DataLine label="Available lending" value={amountText(data?.stats.availableLending, data)} />}
+          {kind === 'deposit' && <DataLine label="Identity verified" value={data ? data.verified ? 'Yes' : 'No' : 'Unavailable'} />}
+        </div>
+        {kind === 'stake' && <ActionLink href="/app/borrow/unstake" navigate={navigate} secondary>Unstake free funds</ActionLink>}
+        {progress.stage !== 'idle' && <p role="status">{progress.label}</p>}
+        <TransactionStatusTracker stage={progress.stage} />
       </div>
     </div>
   </>
 }
 
-function LoanDetail({ id, wallet, navigate }: { id: string; wallet: Wallet; navigate: (href: string) => void }) {
+function LoanDetail({ id, wallet, pool, navigate }: { id: string; wallet: Wallet; pool: Pool; navigate: (href: string) => void }) {
+  const [loan, setLoan] = useState<Loan | null>(null)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    let current = true
+    if (!/^[1-9]\d*$/.test(id)) return
+    void readLoan(BigInt(id)).then(value => { if (current) setLoan(value) })
+      .catch(cause => { if (current) setError(cause instanceof Error ? cause.message : 'Could not read this loan.') })
+    return () => { current = false }
+  }, [id, pool.data])
   return <>
-    <PageHeader title="Loan detail" description="Loan information is shown only when retrieved from a live source.">
+    <PageHeader title="Loan detail" description="Loan information read from the pool contract.">
       <ActionLink href="/app/borrow" navigate={navigate} secondary>Back to Borrow</ActionLink>
     </PageHeader>
     <AccessNote wallet={wallet} />
     <Section title="Loan record">
       <DataLine label="Requested loan ID" value={id} />
-      <EmptyState title="Loan record unavailable" description="This route is ready for a loan read. No loan status, balance, due date, or repayment has been verified." />
+      {error && <Notice tone="warning">{error}</Notice>}
+      {!loan && !error && <Notice>{/^[1-9]\d*$/.test(id) ? 'Loading loan record…' : 'Invalid loan ID.'}</Notice>}
+      {loan && <div className="la-panel">
+        <DataLine label="Borrower" value={loan.borrower} />
+        <DataLine label="Status" value={['None', 'Active', 'Completed', 'Defaulted'][Number(loan.status)] ?? 'Unknown'} />
+        <DataLine label="Principal" value={amountText(loan.principal, pool.data)} />
+        <DataLine label="Remaining debt" value={amountText(loan.totalRepayment - loan.amountPaid, pool.data)} />
+        <DataLine label="Amount paid" value={amountText(loan.amountPaid, pool.data)} />
+        <DataLine label="Due date" value={new Date(Number(loan.dueDate) * 1000).toLocaleString()} />
+        <DataLine label="Locked stake" value={amountText(loan.stakeAmount, pool.data)} />
+      </div>}
     </Section>
   </>
 }
 
-function ActivityPage({ navigate }: { navigate: (href: string) => void }) {
+function ActivityPage({ wallet, navigate }: { wallet: Wallet; navigate: (href: string) => void }) {
+  const [items, setItems] = useState<ActivityItem[]>([])
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    if (wallet.status !== 'connected' || !wallet.address) return
+    let current = true
+    void Promise.resolve().then(async () => {
+      setLoading(true)
+      try { const activity = await readActivity(wallet.address); if (current) setItems(activity) }
+      catch (cause) { if (current) setError(cause instanceof Error ? cause.message : 'Could not read activity.') }
+      finally { if (current) setLoading(false) }
+    })
+    return () => { current = false }
+  }, [wallet.address, wallet.status])
   return <>
-    <PageHeader title="Activity" description="Your verified deposits, withdrawals, loans, and repayments will appear here." />
-    <Section title="Transaction history">
-      <EmptyState title="No transaction source connected" description="Loanch is not reading contract events or account history yet. No transaction has been invented for this list.">
-        <ActionLink href="/app" navigate={navigate} secondary>Return to App Entry</ActionLink>
-      </EmptyState>
-    </Section>
-    <Section title="How status is shown" description="A transaction is confirmed only after an on-chain receipt is available.">
-      <TransactionStatusTracker />
+    <PageHeader title="Activity" description="Recent pool transactions sent by your connected wallet." />
+    <Section title="Recent transactions" description="Showing pool events from up to 5,000 recent blocks and 200 recent logs.">
+      {wallet.status !== 'connected' ? <EmptyState title="Connect your wallet" description="Connect MetaMask to see transactions sent by your account." />
+        : error ? <Notice tone="warning">{error}</Notice>
+          : loading ? <Notice>Reading recent on-chain activity…</Notice>
+            : items.length ? <div className="la-panel">{items.map(item => <DataLine key={item.hash} label={item.action + ' · block ' + item.block} value={item.hash} />)}<div className="la-stack-actions">{items.map(item => <ActionLink key={item.hash} href={'/app/transactions/' + item.hash} navigate={navigate} secondary>View {shortAddress(item.hash)}</ActionLink>)}</div></div>
+              : <EmptyState title="No recent pool transactions" description="No transactions from this wallet appeared in the scanned block range." />}
     </Section>
   </>
 }
 
 function TransactionDetail({ hash, navigate }: { hash: string; navigate: (href: string) => void }) {
   const validHash = /^0x[0-9a-fA-F]{64}$/.test(hash)
+  const [record, setRecord] = useState<Awaited<ReturnType<typeof readTransaction>>>(null)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    if (!validHash) return
+    let current = true
+    void readTransaction(hash).then(value => { if (current) setRecord(value) })
+      .catch(cause => { if (current) setError(cause instanceof Error ? cause.message : 'Could not verify the transaction.') })
+    return () => { current = false }
+  }, [hash, validHash])
   return <>
-    <PageHeader title="Transaction detail" description="Transaction information must be verified against a live source.">
+    <PageHeader title="Transaction detail" description="Receipt verified against the configured RPC.">
       <ActionLink href="/app/activity" navigate={navigate} secondary>Back to Activity</ActionLink>
     </PageHeader>
     <Section title="Transaction reference">
       <DataLine label="Hash from URL" value={validHash ? hash : 'Invalid hash'} />
-      <Notice tone="warning">{validHash ? 'This hash has not been checked against a blockchain provider. Its action, status, timestamp, and confirmation are unavailable.' : 'A transaction hash must contain 0x followed by 64 hexadecimal characters.'}</Notice>
-      <TransactionStatusTracker />
+      {!validHash && <Notice tone="warning">A transaction hash must contain 0x followed by 64 hexadecimal characters.</Notice>}
+      {error && <Notice tone="warning">{error}</Notice>}
+      {validHash && !record && !error && <Notice>Waiting for a transaction receipt…</Notice>}
+      {record && <div className="la-panel">
+        <DataLine label="Action" value={record.action} />
+        <DataLine label="From" value={record.from} />
+        <DataLine label="To" value={record.to} />
+        <DataLine label="Block" value={record.block.toString()} />
+        <DataLine label="Receipt" value={record.confirmed ? 'Confirmed' : 'Failed'} />
+        <DataLine label="Pool contract" value={record.pool ? 'Yes' : 'No'} />
+      </div>}
     </Section>
   </>
 }
 
-function TransparencyPage() {
+function TransparencyPage({ pool }: { pool: Pool }) {
   const contractAddress = LOANCH_CONTRACT_ADDRESS?.trim() || ''
+  const data = pool.data
   const [copied, setCopied] = useState(false)
   const copyAddress = async () => {
     if (!contractAddress) return
@@ -374,12 +539,13 @@ function TransparencyPage() {
   }
   return <>
     <PageHeader title="Transparency" description="Pool figures and contract references, presented only when they can be verified." />
-    <Section title="Pool overview" description="Live metrics are not available until the frontend is connected to a contract read source.">
+    <PoolNotice pool={pool} />
+    <Section title="Pool overview" description="Live values read from the configured pool contract.">
       <div className="la-metric-grid la-metric-grid--four">
-        <UnavailableMetric label="Pool liquidity" detail="Live value unavailable" />
-        <UnavailableMetric label="Total deposited" detail="Live value unavailable" />
-        <UnavailableMetric label="Total borrowed" detail="Live value unavailable" />
-        <UnavailableMetric label="Repayments collected" detail="Live value unavailable" />
+        <Metric label="Liquid pool assets" value={amountText(data?.stats.liquidPoolAssets, data)} />
+        <Metric label="Saver principal claims" value={amountText(data?.stats.saverPrincipalClaims, data)} />
+        <Metric label="Active loan principal" value={amountText(data?.stats.activeLoanPrincipal, data)} />
+        <Metric label="Loss reserve" value={amountText(data?.stats.lossReserveAmount, data)} />
       </div>
     </Section>
     <Section title="Verification">
@@ -388,14 +554,14 @@ function TransparencyPage() {
         <div className="la-panel"><h3>Contract reference</h3>
           <p className="la-contract-address">{contractAddress || 'Not configured'}</p>
           {contractAddress && <button className="la-button la-button--secondary" type="button" onClick={copyAddress}>{copied ? 'Copied' : 'Copy address'}<Copy size={16} aria-hidden="true" /></button>}
-          <p>Pool readings and activity references are unavailable until the live contract integration is connected.</p>
+          <p>{data ? 'Pool contract and asset were verified on the configured RPC.' : 'Pool contract verification is pending.'}</p>
         </div>
       </div>
     </Section>
   </>
 }
 
-function SettingsPage({ wallet }: { wallet: Wallet }) {
+function SettingsPage({ wallet, pool }: { wallet: Wallet; pool: Pool }) {
   return <>
     <PageHeader title="Settings" description="Review wallet and network context for this session." />
     <WalletPanel wallet={wallet} />
@@ -404,7 +570,8 @@ function SettingsPage({ wallet }: { wallet: Wallet }) {
         <DataLine label="Wallet" value={wallet.address || 'Not connected'} />
         <DataLine label="Current chain ID" value={wallet.chainId?.toString() ?? 'Unavailable'} />
         <DataLine label="Expected chain ID" value={expectedChainId?.toString() ?? 'Not configured'} />
-        <DataLine label="Contract write actions" value="Not connected" />
+        <DataLine label="Pool contract" value={pool.data ? 'Verified on configured RPC' : pool.error || 'Checking…'} />
+        <DataLine label="Contract write actions" value={pool.data && wallet.status === 'connected' ? 'Available after review' : 'Unavailable'} />
       </div>
     </Section>
   </>
@@ -414,29 +581,32 @@ function NotFoundPage({ navigate }: { navigate: (href: string) => void }) {
   return <><PageHeader title="Page not found" description="This app route does not exist." /><ActionLink href="/app" navigate={navigate}>Go to App Entry</ActionLink></>
 }
 
-function AppContent({ path, wallet, navigate }: { path: string; wallet: Wallet; navigate: (href: string) => void }) {
+function AppContent({ path, wallet, pool, navigate }: { path: string; wallet: Wallet; pool: Pool; navigate: (href: string) => void }) {
   if (path === '/app' || path === '/app/') return <EntryPage wallet={wallet} navigate={navigate} />
   if ((/^\/app\/save(?:\/|$)/.test(path) || /^\/app\/borrow(?:\/|$)/.test(path)) && wallet.status !== 'connected') return <>
     <PageHeader title="Connect to continue" description="Connect MetaMask and verify the BOT Chain network before choosing a financial action." />
     <WalletPanel wallet={wallet} />
     <div className="la-gate-return"><ActionLink href="/app" navigate={navigate} secondary>Back to App Entry</ActionLink></div>
   </>
-  if (path === '/app/save') return <SaveDashboard wallet={wallet} navigate={navigate} />
-  if (path === '/app/save/deposit') return <FinancialForm kind="deposit" wallet={wallet} navigate={navigate} />
-  if (path === '/app/save/withdraw') return <FinancialForm kind="withdraw" wallet={wallet} navigate={navigate} />
-  if (path === '/app/borrow') return <BorrowDashboard wallet={wallet} navigate={navigate} />
-  if (path === '/app/borrow/request') return <FinancialForm kind="request" wallet={wallet} navigate={navigate} />
-  if (path === '/app/borrow/repay') return <FinancialForm kind="repay" wallet={wallet} navigate={navigate} />
-  if (/^\/app\/borrow\/loan\/[^/]+$/.test(path)) return <LoanDetail id={path.slice('/app/borrow/loan/'.length)} wallet={wallet} navigate={navigate} />
-  if (path === '/app/activity') return <ActivityPage navigate={navigate} />
-  if (/^\/app\/transactions\/[^/]+$/.test(path)) return <TransactionDetail hash={path.slice('/app/transactions/'.length)} navigate={navigate} />
-  if (path === '/app/transparency') return <TransparencyPage />
-  if (path === '/app/settings') return <SettingsPage wallet={wallet} />
+  if (path === '/app/save') return <SaveDashboard wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/save/deposit') return <FinancialForm kind="deposit" wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/save/withdraw') return <FinancialForm kind="withdraw" wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/borrow') return <BorrowDashboard wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/borrow/request') return <FinancialForm kind="request" wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/borrow/repay') return <FinancialForm kind="repay" wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/borrow/stake') return <FinancialForm kind="stake" wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/borrow/unstake') return <FinancialForm kind="unstake" wallet={wallet} pool={pool} navigate={navigate} />
+  if (/^\/app\/borrow\/loan\/[^/]+$/.test(path)) return <LoanDetail key={path} id={path.slice('/app/borrow/loan/'.length)} wallet={wallet} pool={pool} navigate={navigate} />
+  if (path === '/app/activity') return <ActivityPage wallet={wallet} navigate={navigate} />
+  if (/^\/app\/transactions\/[^/]+$/.test(path)) return <TransactionDetail key={path} hash={path.slice('/app/transactions/'.length)} navigate={navigate} />
+  if (path === '/app/transparency') return <TransparencyPage pool={pool} />
+  if (path === '/app/settings') return <SettingsPage wallet={wallet} pool={pool} />
   return <NotFoundPage navigate={navigate} />
 }
 
 function AppExperience() {
   const wallet = useWallet()
+  const pool = usePool(wallet.address, wallet.status === 'connected')
   const { path, navigate } = useAppPath()
   const [mobileOpen, setMobileOpen] = useState(false)
   const navigateAndClose = (href: string) => {
@@ -468,7 +638,7 @@ function AppExperience() {
             <span>{wallet.address ? shortAddress(wallet.address) : wallet.status === 'connecting' ? 'Connecting' : 'Connect wallet'}</span>
           </AppLink>
         </header>
-        <main className="la-main" id="app-main"><AppContent path={path} wallet={wallet} navigate={navigateAndClose} /></main>
+        <main className="la-main" id="app-main"><AppContent path={path} wallet={wallet} pool={pool} navigate={navigateAndClose} /></main>
         <footer className="la-footer"><span>Loanch · Loan, Chain, Launch</span><span><Network size={15} aria-hidden="true" /> {wallet.status === 'connected' ? 'Network verified' : 'Network not verified'}</span></footer>
       </div>
     </div>
