@@ -19,7 +19,11 @@ export interface WalletActions {
   refreshBalance: () => Promise<void>
 }
 
-const TARGET_CHAIN_ID = botChainConfig.chainId ? parseInt(botChainConfig.chainId) : 1
+const configuredChainId = botChainConfig.chainId?.trim()
+const parsedChainId = configuredChainId ? Number(configuredChainId) : Number.NaN
+const TARGET_CHAIN_ID = Number.isSafeInteger(parsedChainId) && parsedChainId > 0
+  ? parsedChainId
+  : null
 
 declare global {
   interface Window {
@@ -68,7 +72,7 @@ export function useWallet(): [WalletState, WalletActions] {
         address,
         chainId,
         balance: ethers.formatEther(balance),
-        isCorrectNetwork: chainId === TARGET_CHAIN_ID,
+        isCorrectNetwork: TARGET_CHAIN_ID !== null && chainId === TARGET_CHAIN_ID,
         error: null,
       }))
     } catch (error) {
@@ -120,10 +124,10 @@ export function useWallet(): [WalletState, WalletActions] {
   }, [])
 
   const switchNetwork = useCallback(async () => {
-    if (!window.ethereum || !botChainConfig.chainId) {
+    if (!window.ethereum || TARGET_CHAIN_ID === null) {
       setState(prev => ({
         ...prev,
-        error: "Cannot switch network: MetaMask not available or BOT Chain not configured",
+        error: "Cannot switch network: MetaMask not available or BOT Chain chain ID is invalid or not configured",
       }))
       return
     }
