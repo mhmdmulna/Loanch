@@ -1,15 +1,10 @@
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
+import { useLenis } from './hooks/useLenis'
 import { motion, useReducedMotion } from 'motion/react'
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronRight, CircleDollarSign, Database, GitBranch, Layers3, LockKeyhole, Menu, ShieldCheck, Wallet, X } from 'lucide-react'
-import Beams from './components/Beams/Beams'
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronRight, CircleDollarSign, Database, GitBranch, Layers3, LockKeyhole, ShieldCheck, Wallet } from 'lucide-react'
+import FaultyTerminal from './components/FaultyTerminal/FaultyTerminal'
+import { Navbar } from './components/Navbar/Navbar'
 
-const appHref = '/app'
-const navigation = [
-  { label: 'How it works', href: '#how-it-works' },
-  { label: 'Benefits', href: '#benefits' },
-  { label: 'For you', href: '#for-you' },
-  { label: 'Transparency', href: '#transparency' },
-]
 const steps = [
   { number: '01', title: 'Savers deposit', description: 'Funds enter a shared lending pool.', icon: Wallet },
   { number: '02', title: 'Funds are allocated', description: 'Eligible borrowers receive loans under set rules.', icon: Layers3 },
@@ -23,8 +18,8 @@ const benefits = [
   { title: 'One shared pool', description: 'Savers deposit; the system allocates eligible loans.', icon: Layers3 },
 ]
 
-function Brand({ inverse = false }: { inverse?: boolean }) {
-  return <a className={`brand${inverse ? ' brand--inverse' : ''}`} href="#top" aria-label="Loanch, back to top">
+function FooterBrand() {
+  return <a className="brand brand--inverse" href="#top" aria-label="Loanch, back to top">
     <span className="brand-mark" aria-hidden="true"><span /><span /><span /></span>
     <span>loanch<span className="brand-period">.</span></span>
   </a>
@@ -34,6 +29,7 @@ function Entrance({ children, className = '', delay = 0 }: { children: ReactNode
   const reduceMotion = useReducedMotion()
   return <motion.div className={className} initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.14 }} transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1], delay }}>{children}</motion.div>
 }
+const appHref = '/app'
 
 function PrimaryLink({ children, className = '' }: { children: ReactNode; className?: string }) {
   const reduceMotion = useReducedMotion()
@@ -41,23 +37,35 @@ function PrimaryLink({ children, className = '' }: { children: ReactNode; classN
 }
 
 function App() {
-  const [menuOpen, setMenuOpen] = useState(false)
+  useLenis()
   const reduceMotion = useReducedMotion()
   return <div className="site-shell" id="top">
-    <a className="skip-link" href="#main">Skip to content</a>
-    <header className="site-header"><div className="container header-inner">
-      <Brand />
-      <nav className={`main-nav${menuOpen ? ' main-nav--open' : ''}`} aria-label="Main navigation" id="main-navigation">
-        {navigation.map(item => <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>)}
-      </nav>
-      <div className="header-actions"><a className="header-cta" href={appHref}>Launch App <ArrowUpRight size={16} aria-hidden="true" /></a>
-        <button className="menu-toggle" type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
-      </div>
-    </div></header>
+    <Navbar />
 
     <main id="main">
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-beams" aria-hidden="true"><Beams beamWidth={2.2} beamHeight={18} beamNumber={14} lightColor="#31D0A3" beamColor="#064E46" backgroundColor="#071524" speed={reduceMotion ? 0 : 1.35} noiseIntensity={1.1} scale={0.24} rotation={-8} /></div>
+        <div className="hero-beams" aria-hidden="true">
+          <FaultyTerminal
+            scale={2}
+            gridMul={[2, 1]}
+            digitSize={0.8}
+            timeScale={0.9}
+            pause={Boolean(reduceMotion)}
+            scanlineIntensity={1}
+            glitchAmount={1}
+            flickerAmount={1}
+            noiseAmp={1}
+            chromaticAberration={0}
+            dither={0}
+            curvature={0.44}
+            tint="#31D0A3"
+            mouseReact={true}
+            mouseStrength={0.3}
+            pageLoadAnimation={false}
+            brightness={1}
+            dpr={1}
+          />
+        </div>
         <div className="hero-grid container">
         <div className="hero-content"><Entrance>
           <h1 id="hero-title">Save together.<br /><span>Lend with clarity.</span></h1>
@@ -104,7 +112,7 @@ function App() {
       <section className="final-cta" aria-labelledby="cta-title"><div className="container final-cta-inner"><Entrance><h2 id="cta-title">Lending you can follow.</h2><p>Save, borrow, and verify the flow.</p></Entrance><PrimaryLink className="button--light">Launch App</PrimaryLink></div></section>
     </main>
 
-    <footer className="site-footer"><div className="container footer-main"><div><Brand inverse /><p>Save. Borrow. Verify.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#for-you">For you</a><a href="#transparency">Transparency</a></nav><div className="footer-project-links"><a href="https://github.com/zaidunk/Loanch" target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch/blob/main/Loanch.md" target="_blank" rel="noreferrer">Project overview <ArrowUpRight size={15} aria-hidden="true" /></a></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loanch</span><span>Loan · Chain · Launch</span></div></footer>
+    <footer className="site-footer"><div className="container footer-main"><div><FooterBrand /><p>Save. Borrow. Verify.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#for-you">For you</a><a href="#transparency">Transparency</a></nav><div className="footer-project-links"><a href="https://github.com/zaidunk/Loanch" target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch/blob/main/Loanch.md" target="_blank" rel="noreferrer">Project overview <ArrowUpRight size={15} aria-hidden="true" /></a></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loanch</span><span>Loan · Chain · Launch</span></div></footer>
   </div>
 }
 
