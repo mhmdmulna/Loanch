@@ -13,7 +13,8 @@ Create implementation-ready, token-driven frontend design guidance for Loanch th
 
 ## Style Foundations
 - Visual style: clean, trustworthy, modern, minimal, financial-data-first
-- Main font style: `font.family.primary=Inter`, `font.family.stack=Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`, `font.size.base=16px`, `font.weight.base=400`, `font.lineHeight.base=24px`
+- Main font style: `font.family.primary=Plus Jakarta Sans`, `font.family.stack="Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`, `font.size.base=16px`, `font.weight.base=400`, `font.lineHeight.base=24px`
+
 - Typography scale: `font.size.xs=12px`, `font.size.sm=14px`, `font.size.md=16px`, `font.size.lg=18px`, `font.size.xl=20px`, `font.size.2xl=24px`, `font.size.3xl=32px`, `font.size.4xl=40px`
 - Color palette: `color.brand.navy=#071524`, `color.brand.teal=#064E46`, `color.brand.emerald=#0FA78F`, `color.brand.mint=#31D0A3`, `color.brand.blue=#3B82F6`, `color.text.primary=#0F172A`, `color.text.secondary=#56636D`, `color.surface.base=#FFFFFF`, `color.surface.subtle=#F7F9FA`, `color.border.muted=#DFE5E8`, `color.text.inverse=#FFFFFF`
 - Spacing scale: `space.1=4px`, `space.2=8px`, `space.3=12px`, `space.4=16px`, `space.5=24px`, `space.6=32px`, `space.7=48px`
