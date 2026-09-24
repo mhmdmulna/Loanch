@@ -10,7 +10,6 @@ await pool.waitForDeployment();
 for (const user of [saver, borrower]) {
   await (await token.mint(user.address, ethers.parseUnits("10000", 18))).wait();
   await (await token.connect(user).approve(await pool.getAddress(), ethers.MaxUint256)).wait();
-  await (await pool.setIdentityVerification(user.address, true)).wait();
 }
 
 await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();

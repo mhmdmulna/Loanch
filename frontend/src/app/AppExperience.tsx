@@ -284,13 +284,12 @@ function BorrowDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Poo
       </div>
       <div className="la-side-panel">
         <h2>Before you request</h2>
-        <p>Identity verification, risk, free stake, loan limit, and liquidity are checked on-chain before a request.</p>
+        <p>Risk, reputation, free stake, loan limit, and liquidity are checked on-chain before a request.</p>
         <ActionLink href="/app/borrow/request" navigate={navigate}>Review requirements</ActionLink>
       </div>
     </div>
     <Section title="Borrower position">
       <div className="la-panel">
-        <DataLine label="Identity verified" value={data ? data.verified ? 'Yes' : 'No' : 'Unavailable'} />
         <DataLine label="Risk score" value={data?.borrower?.riskScore.toString() ?? 'Unavailable'} />
         <DataLine label="Reputation" value={data?.borrower?.reputation.toString() ?? 'Unavailable'} />
         {loan && <ActionLink href={`/app/borrow/loan/${loan.id}`} navigate={navigate}>View active loan</ActionLink>}
@@ -346,7 +345,7 @@ function FinancialForm({ kind, wallet, pool, navigate }: { kind: FormKind; walle
         : kind === 'deposit' || kind === 'stake' || kind === 'repay' ? data?.walletBalance : null
   const overLimit = parsedAmount !== null && limit !== null && limit !== undefined && parsedAmount > limit
   const requestBlocked = kind === 'request' && (!durationValid || preview?.reason !== 0n)
-  const canReview = wallet.status === 'connected' && Boolean(data && parsedAmount && !overLimit && (kind !== 'request' || durationValid) && (kind !== 'repay' || data?.activeLoan) && (kind !== 'deposit' || data?.verified))
+  const canReview = wallet.status === 'connected' && Boolean(data && parsedAmount && !overLimit && (kind !== 'request' || durationValid) && (kind !== 'repay' || data?.activeLoan))
   const canConfirm = canReview && !requestBlocked && !busy && progress.stage !== 'confirmed'
 
   useEffect(() => {
@@ -394,7 +393,6 @@ function FinancialForm({ kind, wallet, pool, navigate }: { kind: FormKind; walle
           {overLimit && <p className="la-field-error" role="alert">Amount exceeds the available limit.</p>}
           {kind === 'request' && <label className="la-field" htmlFor="loanch-duration"><span>Duration in days</span><span className="la-input-wrap"><input id="loanch-duration" type="number" min="1" max="365" step="1" value={days} onChange={event => setDays(event.target.value)} /></span></label>}
           {kind === 'request' && !durationValid && <p className="la-field-error" role="alert">Duration must be 1–365 days.</p>}
-          {kind === 'deposit' && data?.verified === false && <p className="la-field-error" role="alert">Identity verification by the pool admin is required before depositing.</p>}
           {kind === 'repay' && data && !data.activeLoan && <p className="la-field-error" role="alert">There is no active loan to repay.</p>}
           <button className="la-button la-button--primary" type="button" disabled={!canReview} onClick={() => setReviewing(true)}>Review {kind}<ArrowRight size={17} aria-hidden="true" /></button>
         </> : <>
@@ -423,7 +421,6 @@ function FinancialForm({ kind, wallet, pool, navigate }: { kind: FormKind; walle
           {(kind === 'stake' || kind === 'unstake' || kind === 'request') && <DataLine label="Free stake" value={amountText(data?.freeStake, data)} />}
           {kind === 'repay' && <DataLine label="Remaining debt" value={amountText(data?.activeLoan ? data.activeLoan.totalRepayment - data.activeLoan.amountPaid : null, data)} />}
           {kind === 'request' && <DataLine label="Available lending" value={amountText(data?.stats.availableLending, data)} />}
-          {kind === 'deposit' && <DataLine label="Identity verified" value={data ? data.verified ? 'Yes' : 'No' : 'Unavailable'} />}
         </div>
         {kind === 'stake' && <ActionLink href="/app/borrow/unstake" navigate={navigate} secondary>Unstake free funds</ActionLink>}
         {progress.stage !== 'idle' && <p role="status">{progress.label}</p>}

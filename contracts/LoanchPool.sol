@@ -20,6 +20,7 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     uint256 public constant MIN_DURATION = 1 days;
     uint256 public constant MAX_DURATION = 365 days;
     uint256 public constant MIN_REPUTATION = 20;
+    uint256 public constant INITIAL_REPUTATION = 50;
     uint256 public constant LOAN_MARGIN_BPS = 1_000;
     uint256 public constant REWARD_PRECISION = 1e27;
     uint256 public constant DEFAULT_GRACE_PERIOD = 7 days;
@@ -177,7 +178,7 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     function setIdentityVerification(address user, bool verified) external onlyOwner {
         identityVerified[user] = verified;
         if (verified && borrowerProfiles[user].reputation == 0 && !borrowerProfiles[user].blockedAfterDefault) {
-            borrowerProfiles[user].reputation = 50;
+            borrowerProfiles[user].reputation = INITIAL_REPUTATION;
         }
         emit IdentityVerificationUpdated(user, verified);
     }
@@ -206,7 +207,11 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     }
 
     function getBorrowerProfile(address user) external view returns (BorrowerProfile memory) {
-        return borrowerProfiles[user];
+        BorrowerProfile memory profile = borrowerProfiles[user];
+        if (profile.reputation == 0 && !profile.blockedAfterDefault) {
+            profile.reputation = INITIAL_REPUTATION;
+        }
+        return profile;
     }
 
     function getLoan(uint256 loanId) external view returns (Loan memory) {
@@ -290,11 +295,11 @@ contract LoanchPool is Ownable, ReentrancyGuard {
         public view returns (Eligibility reason, uint256 stakeRequired)
     {
         stakeRequired = requiredStake(amount);
-        if (!identityVerified[user]) return (Eligibility.NotVerified, stakeRequired);
         BorrowerProfile storage profile = borrowerProfiles[user];
         if (profile.blockedAfterDefault) return (Eligibility.BorrowerBlocked, stakeRequired);
         if (profile.riskScore < riskThreshold) return (Eligibility.RiskTooLow, stakeRequired);
-        if (profile.reputation < MIN_REPUTATION) return (Eligibility.ReputationTooLow, stakeRequired);
+        uint256 reputation = profile.reputation == 0 ? INITIAL_REPUTATION : profile.reputation;
+        if (reputation < MIN_REPUTATION) return (Eligibility.ReputationTooLow, stakeRequired);
         if (amount == 0 || amount > Math.mulDiv(saverPrincipalClaims, MAX_LOAN_BPS, BPS)) {
             return (Eligibility.InvalidAmount, stakeRequired);
         }
@@ -323,7 +328,6 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     }
 
     function deposit(uint256 amount) external nonReentrant {
-        if (!identityVerified[msg.sender]) revert IdentityNotVerified();
         if (amount == 0) revert ZeroDeposit();
 
         uint256 mintedShares;
@@ -398,6 +402,9 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     function requestLoan(uint256 amount, uint256 duration) external nonReentrant returns (uint256 loanId) {
         (Eligibility reason, uint256 stakeRequired) = previewLoan(msg.sender, amount, duration);
         if (reason != Eligibility.Eligible) revert LoanNotEligible(reason);
+        if (borrowerProfiles[msg.sender].reputation == 0) {
+            borrowerProfiles[msg.sender].reputation = INITIAL_REPUTATION;
+        }
 
         loanId = ++loanCount;
         freeStake[msg.sender] -= stakeRequired;

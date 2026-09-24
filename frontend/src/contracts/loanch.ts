@@ -26,7 +26,7 @@ export type Loan = {
 export type PoolData = {
   assetAddress: string; assetSymbol: string; decimals: number; walletBalance: bigint
   stats: PoolStats; saver: SaverPosition | null; withdrawable: bigint | null
-  verified: boolean | null; borrower: BorrowerProfile | null; freeStake: bigint | null
+  borrower: BorrowerProfile | null; freeStake: bigint | null
   allocatedStake: bigint | null; activeLoanId: bigint | null; activeLoan: Loan | null
 }
 export type ActionKind = 'deposit' | 'withdraw' | 'stake' | 'unstake' | 'request' | 'repay' | 'claim'
@@ -68,18 +68,18 @@ export async function readPool(account?: string): Promise<PoolData> {
   const decimals = Number(decimalsRaw)
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 36) throw new Error('Unsupported pool asset decimals.')
   const user = account && isAddress(account) ? account : null
-  const [walletBalance, saver, withdrawable, verified, borrower, freeStake, allocatedStake, activeLoanId] = user
+  const [walletBalance, saver, withdrawable, borrower, freeStake, allocatedStake, activeLoanId] = user
     ? await Promise.all([
       token.balanceOf(user), pool.getSaverPosition(user), pool.withdrawablePrincipal(user),
-      pool.identityVerified(user), pool.getBorrowerProfile(user), pool.freeStake(user),
+      pool.getBorrowerProfile(user), pool.freeStake(user),
       pool.allocatedStake(user), pool.activeLoanId(user),
     ])
-    : [0n, null, null, null, null, null, null, null]
+    : [0n, null, null, null, null, null, null]
   const activeLoan = activeLoanId && activeLoanId !== 0n ? await pool.getLoan(activeLoanId) : null
   return {
     assetAddress, assetSymbol: symbol, decimals, walletBalance,
     stats: rawStats as PoolStats, saver: saver as SaverPosition | null,
-    withdrawable, verified, borrower: borrower as BorrowerProfile | null,
+    withdrawable, borrower: borrower as BorrowerProfile | null,
     freeStake, allocatedStake, activeLoanId, activeLoan: activeLoan as Loan | null,
   }
 }
@@ -200,7 +200,6 @@ export async function submitAction(action: Action, account: string, data: PoolDa
     const preview = await previewLoan(account, amount, days)
     if (preview.reason !== 0n) throw new Error(eligibilityText(preview.reason))
   }
-  if (action.kind === 'deposit' && data.verified !== true) throw new Error('Identity must be verified by the pool admin before depositing.')
   if (action.kind === 'withdraw' && amount > (data.withdrawable ?? 0n)) throw new Error('Amount exceeds your withdrawable principal.')
   if (action.kind === 'unstake' && amount > (data.freeStake ?? 0n)) throw new Error('Amount exceeds your free stake.')
   if (action.kind === 'repay' && (!action.loanId || !data.activeLoan || amount > data.activeLoan.totalRepayment - data.activeLoan.amountPaid)) throw new Error('Amount exceeds the active loan debt.')

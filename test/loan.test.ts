@@ -5,13 +5,12 @@ import { deployFixture } from "./fixture.ts";
 describe("LoanchPool loan creation", function () {
   it("allocates stake and disburses once after eligibility succeeds", async function () {
     const { pool, token, saverA, borrower } = await deployFixture();
-    await (await pool.setIdentityVerification(saverA.address, true)).wait();
-    await (await pool.setIdentityVerification(borrower.address, true)).wait();
     await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
     await (await pool.connect(saverA).deposit(1_000n)).wait();
     await (await pool.connect(borrower).stake(50n)).wait();
     const borrowerBefore = await token.balanceOf(borrower.address);
     await (await pool.connect(borrower).requestLoan(400n, 30n * 86400n)).wait();
+    expect(await pool.identityVerified(borrower.address)).to.equal(false);
     const loan = await pool.getLoan(1n);
     expect(loan.borrower).to.equal(borrower.address);
     expect(loan.principal).to.equal(400n);

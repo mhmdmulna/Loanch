@@ -186,8 +186,6 @@ Sebagai gantinya, mereka berpartisipasi dalam pool.
 ```text
 Register
    ↓
-Identity Verification
-   ↓
 Deposit
    ↓
 Receive Deposit Position
@@ -203,7 +201,6 @@ Smart contract mencatat setidaknya:
 
 ```text
 Saver
-├── User Identity
 ├── Deposit Amount
 ├── Deposit Timestamp
 ├── Withdrawable Amount
@@ -223,8 +220,6 @@ Contoh:
 ```text
 Borrower
    ↓
-Identity Verified?
-   ↓
 Risk Requirement Passed?
    ↓
 Stake Already Locked and Sufficient?
@@ -233,6 +228,8 @@ Liquidity Available?
    ↓
 Loan Approved
 ```
+
+> **Demo scope:** identity/KYC tidak menjadi syarat deposit atau loan. Metadata identity tetap tersedia untuk integrasi KYC di fase berikutnya.
 
 Data pinjaman dapat berbentuk:
 

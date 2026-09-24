@@ -31,14 +31,14 @@ describe("LoanchPool deposits", function () {
     await assert.rejects(ethers.deployContract("LoanchPool", [await token.getAddress(), 10_001]), /InvalidReserveRatio/);
   });
 
-  it("requires shared wallet identity before a Saver can deposit", async function () {
+  it("allows an unverified wallet to deposit in demo mode", async function () {
     const { saverA, pool } = await deployPool();
-    await assert.rejects(pool.connect(saverA).deposit(100n), /IdentityNotVerified/);
+    await (await pool.connect(saverA).deposit(100n)).wait();
     expect(await pool.identityVerified(saverA.address)).to.equal(false);
-    expect((await pool.getSaverPosition(saverA.address)).shares).to.equal(0n);
+    expect((await pool.getSaverPosition(saverA.address)).shares).to.equal(100n);
   });
 
-  it("restricts identity updates to owner and emits the wallet-level status", async function () {
+  it("keeps identity metadata owner-managed without gating deposits", async function () {
     const { saverA, saverB, pool } = await deployPool();
     await assert.rejects(pool.connect(saverB).setIdentityVerification(saverA.address, true), /OwnableUnauthorizedAccount/);
     const receipt = await (await pool.setIdentityVerification(saverA.address, true)).wait();
@@ -50,7 +50,8 @@ describe("LoanchPool deposits", function () {
     expect(await pool.identityVerified(saverA.address)).to.equal(true);
     await (await pool.connect(saverA).deposit(100n)).wait();
     await (await pool.setIdentityVerification(saverA.address, false)).wait();
-    await assert.rejects(pool.connect(saverA).deposit(1n), /IdentityNotVerified/);
+    await (await pool.connect(saverA).deposit(1n)).wait();
+    expect((await pool.getSaverPosition(saverA.address)).shares).to.equal(101n);
   });
 
   it("rejects a zero deposit without moving tokens or minting shares", async function () {

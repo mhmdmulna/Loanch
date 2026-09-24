@@ -5,7 +5,7 @@ Errors are Solidity custom errors. The frontend should decode them from the ABI 
 | Error | Meaning |
 | --- | --- |
 | `InvalidAsset`, `InvalidReserveRatio`, `InvalidDistribution`, `InvalidScore`, `InvalidWeight` | Invalid deployment or owner configuration |
-| `IdentityNotVerified` | Saver identity has not been verified |
+| `IdentityNotVerified` | Reserved for ABI compatibility; unused by demo deposit and loan flows |
 | `LoanNotEligible(reason)` | Loan request failed; decode `reason` using the enum in `CONTRACT_INTERFACE.md` |
 | `ZeroDeposit`, `ZeroAmount`, `ZeroShares`, `ZeroWeightedShares`, `ZeroPrincipalSharePrice` | Zero or unrepresentable financial position |
 | `InsufficientPrincipal`, `InsufficientLiquidity`, `InsufficientStake`, `InsufficientPlatformRevenue` | Requested amount is not available |

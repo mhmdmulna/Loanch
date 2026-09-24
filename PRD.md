@@ -132,7 +132,7 @@ MVP harus mencakup:
 
 ### Saver
 
-- Menggunakan identitas terverifikasi yang sama dengan Borrower.
+- Dapat deposit tanpa identity verification selama mode demo.
 - Deposit asset.
 - Melihat posisi deposit.
 - Melihat estimated/accumulated return.
@@ -140,7 +140,7 @@ MVP harus mencakup:
 
 ### Borrower
 
-- Mendapat status identity verification sederhana.
+- Identity verification tidak menjadi gate selama mode demo.
 - Mendapat risk eligibility sederhana.
 - Mengunci stake sebelum request loan.
 - Mengajukan loan.
@@ -805,8 +805,6 @@ Connect MetaMask
  ↓
 Check BOT Chain
  ↓
-Check identityVerified
- ↓
 Enter Deposit Amount
  ↓
 Approve Asset if Required
@@ -1203,8 +1201,7 @@ double withdrawal rejected
 ### Borrower
 
 ```text
-unverified user deposit and loan rejected
-same verified wallet can deposit and borrow
+unverified wallet can deposit and borrow in demo mode
 risk requirement failure rejected
 insufficient stake rejected
 ```
@@ -1665,8 +1662,8 @@ Mengubah aturan PRD menjadi kontrak interface yang tidak ambigu sebelum menulis 
 ## Required Decisions
 
 ```text
-one verified wallet can be Saver and Borrower
-verified identity required for deposit and loan
+one wallet can be Saver and Borrower
+identity metadata retained but does not gate deposit or loan in demo mode
 one active loan per borrower
 stake locked before requestLoan
 withdraw is immediate or reverts
@@ -1796,7 +1793,7 @@ Deposit harus menghitung share berdasarkan nilai pokok per share saat ini. Depos
 
 ## Tests
 
-- unverified user deposit rejected,
+- unverified user deposit accepted in demo mode,
 - zero deposit rejected,
 - first deposit dan multiple Saver deposit,
 - share proporsi untuk deposit berbeda,
@@ -1876,7 +1873,7 @@ stake free balance
 withdraw unused stake
 stake allocation helpers
 minimum stake rule
-identity, risk, reputation, and blocked checks
+identity metadata, plus risk, reputation, and blocked checks
 loan amount and duration validation
 eligibility preview/read function
 ```
@@ -1888,7 +1885,7 @@ Stake harus masuk ke pembukuan terpisah. Deposit Saver pada wallet yang sama tid
 - stake dan unstake bebas,
 - zero stake rejected,
 - stake tidak menaikkan available lending,
-- unverified/low-risk/blocked borrower tidak eligible,
+- low-risk/blocked borrower tidak eligible; unverified borrower tetap dapat eligible dalam mode demo,
 - insufficient stake rejected,
 - wallet yang sama dapat memiliki deposit dan stake terpisah,
 - allocated stake tidak dapat ditarik atau dialokasikan dua kali.
