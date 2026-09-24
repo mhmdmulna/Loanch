@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronRight, CircleDollarSign, Database, GitBranch, Layers3, LockKeyhole, ShieldCheck, Wallet } from 'lucide-react'
 import FaultyTerminal from './components/FaultyTerminal/FaultyTerminal'
 import { Navbar } from './components/Navbar/Navbar'
+import AppExperience from './app/AppExperience'
 
 const steps = [
   { number: '01', title: 'Savers deposit', description: 'Funds enter a shared lending pool.', icon: Wallet },
@@ -36,7 +37,7 @@ function PrimaryLink({ children, className = '' }: { children: ReactNode; classN
   return <motion.a className={`button button--primary ${className}`} href={appHref} whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.18 }}>{children}<ArrowUpRight size={18} strokeWidth={2} aria-hidden="true" /></motion.a>
 }
 
-function App() {
+function LandingPage() {
   useLenis()
   const reduceMotion = useReducedMotion()
   return <div className="site-shell" id="top">
@@ -114,6 +115,12 @@ function App() {
 
     <footer className="site-footer"><div className="container footer-main"><div><FooterBrand /><p>Save. Borrow. Verify.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#for-you">For you</a><a href="#transparency">Transparency</a></nav><div className="footer-project-links"><a href="https://github.com/zaidunk/Loanch" target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch/blob/main/Loanch.md" target="_blank" rel="noreferrer">Project overview <ArrowUpRight size={15} aria-hidden="true" /></a></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loanch</span><span>Loan · Chain · Launch</span></div></footer>
   </div>
+}
+
+function App() {
+  const isAppRoute = typeof window !== 'undefined' && /^\/app(?:\/|$)/.test(window.location.pathname)
+
+  return isAppRoute ? <AppExperience /> : <LandingPage />
 }
 
 export default App
