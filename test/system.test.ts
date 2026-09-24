@@ -5,9 +5,9 @@ import { deployFixture, ethers } from "./fixture.ts";
 type Fixture = Awaited<ReturnType<typeof deployFixture>>;
 
 async function assertAccounting(f: Fixture, saverAddresses: string[]) {
-  const { pool, token } = f;
+  const { pool } = f;
   const stats = await pool.getPoolStats();
-  const balance = await token.balanceOf(await pool.getAddress());
+  const balance = await ethers.provider.getBalance(await pool.getAddress());
   expect(stats.liquidPoolAssets + stats.lockedStake).to.equal(balance);
   assert.ok(stats.liquidPoolAssets + stats.activeLoanPrincipal >=
     stats.saverPrincipalClaims + stats.saverReturnLiability + stats.platformRevenue + stats.lossReserveAmount);
@@ -30,17 +30,17 @@ describe("LoanchPool full-system invariants", function () {
     const savers = [saverA.address, saverB.address, other.address];
     for (const user of [saverA, saverB, other, borrower]) await (await pool.setIdentityVerification(user.address, true)).wait();
     await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
-    await (await pool.connect(saverA).deposit(2_000n)).wait();
-    await (await pool.connect(saverB).deposit(1_000n)).wait();
-    await (await pool.connect(other).deposit(1_000n)).wait();
+    await (await pool.connect(saverA).deposit({ value: 2_000n })).wait();
+    await (await pool.connect(saverB).deposit({ value: 1_000n })).wait();
+    await (await pool.connect(other).deposit({ value: 1_000n })).wait();
     await (await pool.setSaverWeight(saverA.address, 5_000)).wait();
     await (await pool.setSaverWeight(saverB.address, 20_000)).wait();
     await assertAccounting(f, savers);
 
-    await (await pool.connect(borrower).stake(50n)).wait();
+    await (await pool.connect(borrower).stake({ value: 50n })).wait();
     await (await pool.connect(borrower).requestLoan(1_000n, 86400n)).wait();
     await assertAccounting(f, savers);
-    await (await pool.connect(borrower).repayLoan(1n, 1_050n)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, { value: 1_050n })).wait();
     expect(await pool.claimableReturn(saverA.address)).to.equal(10n);
     expect(await pool.claimableReturn(saverB.address)).to.equal(20n);
     expect(await pool.claimableReturn(other.address)).to.equal(10n);
@@ -51,7 +51,7 @@ describe("LoanchPool full-system invariants", function () {
     await (await pool.setSaverWeight(saverB.address, 5_000)).wait();
     await (await pool.setDistributionBps(6_000, 3_000, 1_000)).wait();
     await assertAccounting(f, savers);
-    await (await pool.connect(borrower).repayLoan(1n, 50n)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, { value: 50n })).wait();
     expect(await pool.claimableReturn(saverA.address)).to.equal(34n);
     expect(await pool.claimableReturn(saverB.address)).to.equal(23n);
     expect(await pool.claimableReturn(other.address)).to.equal(13n);
@@ -73,17 +73,17 @@ describe("LoanchPool full-system invariants", function () {
       const savers = [saverA.address, saverB.address];
       for (const user of [saverA, saverB, borrower]) await (await pool.setIdentityVerification(user.address, true)).wait();
       await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
-      await (await pool.connect(saverA).deposit(1_000n + seed * 7_919n % 500n)).wait();
-      await (await pool.connect(saverB).deposit(700n + seed * 1_543n % 300n)).wait();
+      await (await pool.connect(saverA).deposit({ value: 1_000n + seed * 7_919n % 500n })).wait();
+      await (await pool.connect(saverB).deposit({ value: 700n + seed * 1_543n % 300n })).wait();
       await assertAccounting(f, savers);
       const principal = 300n + seed * 3_571n % 300n;
-      await (await pool.connect(borrower).stake(await pool.requiredStake(principal))).wait();
+      await (await pool.connect(borrower).stake({ value: await pool.requiredStake(principal) })).wait();
       await (await pool.connect(borrower).requestLoan(principal, 86400n)).wait();
       await assertAccounting(f, savers);
-      await (await pool.connect(borrower).repayLoan(1n, principal / 2n)).wait();
+      await (await pool.connect(borrower).repayLoan(1n, { value: principal / 2n })).wait();
       await assertAccounting(f, savers);
       if (seed % 2n === 0n) {
-        await (await pool.connect(borrower).repayLoan(1n, await pool.remainingDebt(1n))).wait();
+        await (await pool.connect(borrower).repayLoan(1n, { value: await pool.remainingDebt(1n) })).wait();
       } else {
         await ethers.provider.send("evm_increaseTime", [9 * 86400]);
         await ethers.provider.send("evm_mine", []);

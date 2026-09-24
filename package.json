@@ -8,6 +8,8 @@
     "dev": "npm run frontend:dev",
     "compile": "hardhat compile",
     "test": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy-testnet.ts --network botTestnet",
+    "smoke:testnet": "hardhat run scripts/smoke-testnet.ts --network botTestnet",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint hardhat.config.ts scripts test",
     "local:demo": "hardhat run scripts/local-demo.ts",

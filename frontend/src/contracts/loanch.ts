@@ -3,14 +3,6 @@ import abi from './LoanchPool.json'
 import { LOANCH_CONTRACT_ADDRESS } from './addresses'
 import { botChainConfig } from './config'
 
-const tokenAbi = [
-  'function decimals() view returns (uint8)',
-  'function symbol() view returns (string)',
-  'function balanceOf(address) view returns (uint256)',
-  'function allowance(address,address) view returns (uint256)',
-  'function approve(address,uint256) returns (bool)',
-]
-
 export type PoolStats = {
   totalShares: bigint; saverPrincipalClaims: bigint; liquidPoolAssets: bigint
   liquidityReserveTarget: bigint; availableLending: bigint; activeLoanPrincipal: bigint
@@ -24,7 +16,7 @@ export type Loan = {
   totalRepayment: bigint; amountPaid: bigint; dueDate: bigint; stakeAmount: bigint; status: bigint
 }
 export type PoolData = {
-  assetAddress: string; assetSymbol: string; decimals: number; walletBalance: bigint
+  assetSymbol: string; decimals: number; walletBalance: bigint
   stats: PoolStats; saver: SaverPosition | null; withdrawable: bigint | null
   borrower: BorrowerProfile | null; freeStake: bigint | null
   allocatedStake: bigint | null; activeLoanId: bigint | null; activeLoan: Loan | null
@@ -61,23 +53,20 @@ export async function verifyPool() {
 
 export async function readPool(account?: string): Promise<PoolData> {
   const pool = await verifyPool()
-  const [rawStats, assetAddress] = await Promise.all([pool.getPoolStats(), pool.asset()])
-  if (!isAddress(assetAddress) || await provider().getCode(assetAddress) === '0x') throw new Error('The pool asset contract is unavailable.')
-  const token = new Contract(assetAddress, tokenAbi, provider())
-  const [decimalsRaw, symbol] = await Promise.all([token.decimals(), token.symbol()])
-  const decimals = Number(decimalsRaw)
-  if (!Number.isInteger(decimals) || decimals < 0 || decimals > 36) throw new Error('Unsupported pool asset decimals.')
+  const rawStats = await pool.getPoolStats()
+  const decimals = 18
+  const symbol = 'BOT'
   const user = account && isAddress(account) ? account : null
   const [walletBalance, saver, withdrawable, borrower, freeStake, allocatedStake, activeLoanId] = user
     ? await Promise.all([
-      token.balanceOf(user), pool.getSaverPosition(user), pool.withdrawablePrincipal(user),
+      provider().getBalance(user), pool.getSaverPosition(user), pool.withdrawablePrincipal(user),
       pool.getBorrowerProfile(user), pool.freeStake(user),
       pool.allocatedStake(user), pool.activeLoanId(user),
     ])
     : [0n, null, null, null, null, null, null]
   const activeLoan = activeLoanId && activeLoanId !== 0n ? await pool.getLoan(activeLoanId) : null
   return {
-    assetAddress, assetSymbol: symbol, decimals, walletBalance,
+    assetSymbol: symbol, decimals, walletBalance,
     stats: rawStats as PoolStats, saver: saver as SaverPosition | null,
     withdrawable, borrower: borrower as BorrowerProfile | null,
     freeStake, allocatedStake, activeLoanId, activeLoan: activeLoan as Loan | null,
@@ -173,7 +162,8 @@ function readableError(cause: unknown) {
         InsufficientStake: 'You need more free stake.',
         Overpayment: 'Amount exceeds the remaining debt.',
         NothingToClaim: 'There is no return available to claim.',
-        UnsupportedTokenTransfer: 'This token transfer is not supported by the pool.',
+        NativeTransferFailed: 'The BOT transfer could not be completed.',
+        DirectPaymentUnsupported: 'Send BOT through a deposit, stake, or repayment action.',
       } as Record<string, string>)[decoded.name] || `Contract rejected: ${decoded.name}.`
     } catch { /* The wallet may omit or wrap revert data. */ }
   }
@@ -189,8 +179,6 @@ export async function submitAction(action: Action, account: string, data: PoolDa
   const signer = await browser.getSigner(account)
   if ((await signer.getAddress()).toLowerCase() !== account.toLowerCase()) throw new Error('The selected MetaMask account changed. Reconnect and try again.')
   const pool = new Contract(expected.address, abi, signer)
-  if ((await pool.asset() as string).toLowerCase() !== data.assetAddress.toLowerCase()) throw new Error('MetaMask points to a different pool deployment. Refresh the page.')
-  const token = new Contract(data.assetAddress, tokenAbi, signer)
   const amount = action.amount ?? 0n
   const needsAmount = action.kind !== 'claim'
   if (needsAmount && amount <= 0n) throw new Error('Enter an amount greater than zero.')
@@ -205,27 +193,16 @@ export async function submitAction(action: Action, account: string, data: PoolDa
   if (action.kind === 'repay' && (!action.loanId || !data.activeLoan || amount > data.activeLoan.totalRepayment - data.activeLoan.amountPaid)) throw new Error('Amount exceeds the active loan debt.')
   if (action.kind === 'claim' && (data.saver?.claimableReturn ?? 0n) <= 0n) throw new Error('No Saver return is available to claim.')
 
-  const needsApproval = action.kind === 'deposit' || action.kind === 'stake' || action.kind === 'repay'
-  if (needsApproval) {
-    if (amount > data.walletBalance) throw new Error('Amount exceeds your token balance.')
-    const allowance = await token.allowance(account, expected.address) as bigint
-    if (allowance < amount) {
-      onProgress({ stage: 'awaiting-wallet', label: 'Approve token spending in MetaMask' })
-      const approval = await token.approve(expected.address, amount)
-      onProgress({ stage: 'confirming', label: 'Waiting for token approval', hash: approval.hash })
-      const approvalReceipt = await approval.wait()
-      if (!approvalReceipt || approvalReceipt.status !== 1) throw new Error('Token approval did not confirm.')
-      if (await token.allowance(account, expected.address) < amount) throw new Error('Token allowance did not update after approval.')
-    }
-  }
+  const sendsBot = action.kind === 'deposit' || action.kind === 'stake' || action.kind === 'repay'
+  if (sendsBot && amount > data.walletBalance) throw new Error('Amount exceeds your BOT balance.')
 
   onProgress({ stage: 'awaiting-wallet', label: 'Confirm the pool transaction in MetaMask' })
-  const tx = action.kind === 'deposit' ? await pool.deposit(amount)
+  const tx = action.kind === 'deposit' ? await pool.deposit({ value: amount })
     : action.kind === 'withdraw' ? await pool.withdraw(amount)
-      : action.kind === 'stake' ? await pool.stake(amount)
+      : action.kind === 'stake' ? await pool.stake({ value: amount })
         : action.kind === 'unstake' ? await pool.unstake(amount)
           : action.kind === 'request' ? await pool.requestLoan(amount, BigInt(action.durationDays!) * 86400n)
-            : action.kind === 'repay' ? await pool.repayLoan(action.loanId, amount)
+            : action.kind === 'repay' ? await pool.repayLoan(action.loanId, { value: amount })
               : await pool.claimReturn()
   onProgress({ stage: 'submitted', label: 'Transaction submitted', hash: tx.hash })
   onProgress({ stage: 'confirming', label: 'Waiting for on-chain confirmation', hash: tx.hash })

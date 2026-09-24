@@ -551,7 +551,7 @@ function TransparencyPage({ pool }: { pool: Pool }) {
         <div className="la-panel"><h3>Contract reference</h3>
           <p className="la-contract-address">{contractAddress || 'Not configured'}</p>
           {contractAddress && <button className="la-button la-button--secondary" type="button" onClick={copyAddress}>{copied ? 'Copied' : 'Copy address'}<Copy size={16} aria-hidden="true" /></button>}
-          <p>{data ? 'Pool contract and asset were verified on the configured RPC.' : 'Pool contract verification is pending.'}</p>
+          <p>{data ? 'Pool contract and native BOT balance were verified on the configured RPC.' : 'Pool contract verification is pending.'}</p>
         </div>
       </div>
     </Section>

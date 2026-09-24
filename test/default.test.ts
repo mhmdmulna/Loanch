@@ -4,21 +4,21 @@ import { deployFixture, ethers } from "./fixture.ts";
 
 describe("LoanchPool default waterfall", function () {
   it("waits seven days, permits late payment, then haircuts Saver claims once", async function () {
-    const { pool, token, saverA, saverB, borrower, other } = await deployFixture();
+    const { pool, saverA, saverB, borrower, other } = await deployFixture();
     for (const user of [saverA, saverB, borrower]) await (await pool.setIdentityVerification(user.address, true)).wait();
     await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
-    await (await pool.connect(saverA).deposit(1_000n)).wait();
-    await (await pool.connect(saverB).deposit(1_000n)).wait();
-    await (await pool.connect(borrower).stake(60n)).wait();
+    await (await pool.connect(saverA).deposit({ value: 1_000n })).wait();
+    await (await pool.connect(saverB).deposit({ value: 1_000n })).wait();
+    await (await pool.connect(borrower).stake({ value: 60n })).wait();
     await (await pool.connect(borrower).requestLoan(1_000n, 86400n)).wait();
     await assert.rejects(pool.connect(other).markDefault(1n), /GracePeriodActive/);
     await ethers.provider.send("evm_increaseTime", [2 * 86400]);
     await ethers.provider.send("evm_mine", []);
-    await (await pool.connect(borrower).repayLoan(1n, 100n)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, { value: 100n })).wait();
     await assert.rejects(pool.connect(other).markDefault(1n), /GracePeriodActive/);
     await ethers.provider.send("evm_increaseTime", [7 * 86400]);
     await ethers.provider.send("evm_mine", []);
-    const beforeBorrower = await token.balanceOf(borrower.address);
+    const beforeBorrower = await ethers.provider.getBalance(borrower.address);
     await (await pool.connect(other).markDefault(1n)).wait();
     const loss = await pool.defaultLosses(1n);
     expect(loss.unpaidPrincipal).to.equal(900n);
@@ -26,7 +26,7 @@ describe("LoanchPool default waterfall", function () {
     expect(loss.reserveUsed).to.equal(0n);
     expect(loss.saverLoss).to.equal(850n);
     expect(loss.stakeReturned).to.equal(0n);
-    expect(await token.balanceOf(borrower.address)).to.equal(beforeBorrower);
+    expect(await ethers.provider.getBalance(borrower.address)).to.equal(beforeBorrower);
     expect(await pool.saverPrincipalClaims()).to.equal(1_150n);
     expect((await pool.getSaverPosition(saverA.address)).principalClaim).to.equal(575n);
     expect((await pool.getSaverPosition(saverB.address)).principalClaim).to.equal(575n);
@@ -36,14 +36,14 @@ describe("LoanchPool default waterfall", function () {
     expect((await pool.getBorrowerProfile(borrower.address)).reputation).to.equal(30n);
     expect((await pool.getBorrowerProfile(borrower.address)).blockedAfterDefault).to.equal(true);
     await assert.rejects(pool.connect(other).markDefault(1n), /InvalidLoanState/);
-    await assert.rejects(pool.connect(borrower).repayLoan(1n, 1n), /InvalidLoanState/);
+    await assert.rejects(pool.connect(borrower).repayLoan(1n, { value: 1n }), /InvalidLoanState/);
     await (await pool.connect(saverA).withdraw(575n)).wait();
     expect((await pool.getSaverPosition(saverB.address)).principalClaim).to.equal(575n);
     expect(await pool.liquidPoolAssets()).to.equal(575n);
     await (await pool.connect(saverB).withdraw(575n)).wait();
-    expect(await token.balanceOf(await pool.getAddress())).to.equal(10n);
+    expect(await ethers.provider.getBalance(await pool.getAddress())).to.equal(10n);
     await (await pool.connect(borrower).unstake(10n)).wait();
-    expect(await token.balanceOf(await pool.getAddress())).to.equal(0n);
+    expect(await ethers.provider.getBalance(await pool.getAddress())).to.equal(0n);
   });
 
   it("uses return-funded loss reserve before Saver haircut", async function () {
@@ -51,12 +51,12 @@ describe("LoanchPool default waterfall", function () {
     for (const user of [saverA, borrower, other]) await (await pool.setIdentityVerification(user.address, true)).wait();
     await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
     await (await pool.setBorrowerRiskScore(other.address, 80)).wait();
-    await (await pool.connect(saverA).deposit(2_000n)).wait();
-    await (await pool.connect(borrower).stake(50n)).wait();
+    await (await pool.connect(saverA).deposit({ value: 2_000n })).wait();
+    await (await pool.connect(borrower).stake({ value: 50n })).wait();
     await (await pool.connect(borrower).requestLoan(1_000n, 86400n)).wait();
-    await (await pool.connect(borrower).repayLoan(1n, 1_100n)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, { value: 1_100n })).wait();
     expect(await pool.lossReserveAmount()).to.equal(5n);
-    await (await pool.connect(other).stake(5n)).wait();
+    await (await pool.connect(other).stake({ value: 5n })).wait();
     await (await pool.connect(other).requestLoan(100n, 86400n)).wait();
     await ethers.provider.send("evm_increaseTime", [9 * 86400]);
     await ethers.provider.send("evm_mine", []);
@@ -75,15 +75,15 @@ describe("LoanchPool default waterfall", function () {
     const { pool, saverA, saverB, borrower, other } = await deployFixture();
     for (const user of [saverA, saverB, borrower, other]) await (await pool.setIdentityVerification(user.address, true)).wait();
     await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
-    await (await pool.connect(saverA).deposit(1_000n)).wait();
-    await (await pool.connect(saverB).deposit(1_000n)).wait();
-    await (await pool.connect(borrower).stake(50n)).wait();
+    await (await pool.connect(saverA).deposit({ value: 1_000n })).wait();
+    await (await pool.connect(saverB).deposit({ value: 1_000n })).wait();
+    await (await pool.connect(borrower).stake({ value: 50n })).wait();
     await (await pool.connect(borrower).requestLoan(1_000n, 86400n)).wait();
     await ethers.provider.send("evm_increaseTime", [9 * 86400]);
     await ethers.provider.send("evm_mine", []);
     await (await pool.markDefault(1n)).wait();
     expect(await pool.saverPrincipalClaims()).to.equal(1_050n);
-    await (await pool.connect(other).deposit(525n)).wait();
+    await (await pool.connect(other).deposit({ value: 525n })).wait();
     expect((await pool.getSaverPosition(other.address)).shares).to.equal(1_000n);
     expect((await pool.getSaverPosition(other.address)).principalClaim).to.equal(525n);
     expect((await pool.getSaverPosition(saverA.address)).principalClaim).to.equal(525n);
@@ -92,22 +92,22 @@ describe("LoanchPool default waterfall", function () {
   });
 
   it("returns loan stake left after unpaid principal is covered", async function () {
-    const { pool, saverA, borrower, token } = await deployFixture();
+    const { pool, saverA, borrower } = await deployFixture();
     for (const user of [saverA, borrower]) await (await pool.setIdentityVerification(user.address, true)).wait();
     await (await pool.setBorrowerRiskScore(borrower.address, 80)).wait();
-    await (await pool.connect(saverA).deposit(200n)).wait();
-    await (await pool.connect(borrower).stake(5n)).wait();
+    await (await pool.connect(saverA).deposit({ value: 200n })).wait();
+    await (await pool.connect(borrower).stake({ value: 5n })).wait();
     await (await pool.connect(borrower).requestLoan(100n, 86400n)).wait();
-    await (await pool.connect(borrower).repayLoan(1n, 97n)).wait();
+    await (await pool.connect(borrower).repayLoan(1n, { value: 97n })).wait();
     await ethers.provider.send("evm_increaseTime", [9 * 86400]);
     await ethers.provider.send("evm_mine", []);
-    const before = await token.balanceOf(borrower.address);
+    const before = await ethers.provider.getBalance(borrower.address);
     await (await pool.markDefault(1n)).wait();
     const loss = await pool.defaultLosses(1n);
     expect(loss.unpaidPrincipal).to.equal(3n);
     expect(loss.stakeUsed).to.equal(3n);
     expect(loss.stakeReturned).to.equal(2n);
     expect(loss.saverLoss).to.equal(0n);
-    expect(await token.balanceOf(borrower.address)).to.equal(before + 2n);
+    expect(await ethers.provider.getBalance(borrower.address)).to.equal(before + 2n);
   });
 });

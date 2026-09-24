@@ -14,11 +14,9 @@ const previousPool = new Contract(
   artifact.abi,
   provider,
 );
-const asset = await previousPool.asset();
 const reserveBps = await previousPool.reserveBps();
 const signer = await provider.getSigner(0);
 const pool = await new ContractFactory(artifact.abi, artifact.bytecode, signer).deploy(
-  asset,
   reserveBps,
 );
 await pool.waitForDeployment();
@@ -35,6 +33,6 @@ for (const path of [".env", "frontend/.env"]) {
 
 console.log(JSON.stringify({
   pool: poolAddress,
-  asset,
+  asset: "native BOT",
   chainId: network.chainId.toString(),
 }));

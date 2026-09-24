@@ -2,15 +2,11 @@
 pragma solidity ^0.8.28;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @notice On-chain rules and accounting for the Loanch MVP.
 contract LoanchPool is Ownable, ReentrancyGuard {
-    using SafeERC20 for IERC20;
-
     uint256 public constant BPS = 10_000;
     uint256 public constant DEFAULT_WEIGHT_BPS = BPS;
     uint256 public constant MIN_WEIGHT_BPS = 5_000;
@@ -25,7 +21,6 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     uint256 public constant REWARD_PRECISION = 1e27;
     uint256 public constant DEFAULT_GRACE_PERIOD = 7 days;
 
-    IERC20 public immutable asset;
     uint256 public reserveBps;
     uint256 public totalShares;
     uint256 public totalWeightedShares;
@@ -119,7 +114,7 @@ contract LoanchPool is Ownable, ReentrancyGuard {
 
     mapping(address saver => SaverPosition position) private saverPositions;
 
-    error InvalidAsset();
+    error InvalidRecipient();
     error InvalidReserveRatio();
     error InvalidScore();
     error InvalidDistribution();
@@ -130,7 +125,8 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     error ZeroShares();
     error ZeroWeightedShares();
     error ZeroPrincipalSharePrice();
-    error UnsupportedTokenTransfer();
+    error NativeTransferFailed();
+    error DirectPaymentUnsupported();
     error InsufficientPrincipal();
     error InsufficientLiquidity();
     error InsufficientStake();
@@ -166,12 +162,14 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     event ReputationPenalized(address indexed borrower, uint256 newScore);
     event PlatformRevenueWithdrawn(address indexed recipient, uint256 amount);
 
-    constructor(address asset_, uint256 reserveBps_) Ownable(msg.sender) {
-        if (asset_ == address(0) || asset_.code.length == 0) revert InvalidAsset();
+    constructor(uint256 reserveBps_) Ownable(msg.sender) {
         if (reserveBps_ > BPS) revert InvalidReserveRatio();
 
-        asset = IERC20(asset_);
         reserveBps = reserveBps_;
+    }
+
+    receive() external payable {
+        revert DirectPaymentUnsupported();
     }
 
     /// @dev Only a verification result is stored on-chain, not identity data.
@@ -232,7 +230,7 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     }
 
     function liquidPoolAssets() public view returns (uint256) {
-        uint256 balance = asset.balanceOf(address(this));
+        uint256 balance = address(this).balance;
         return balance > totalLockedStake ? balance - totalLockedStake : 0;
     }
 
@@ -327,7 +325,8 @@ contract LoanchPool is Ownable, ReentrancyGuard {
         emit SaverWeightUpdated(user, oldWeightBps, newWeightBps);
     }
 
-    function deposit(uint256 amount) external nonReentrant {
+    function deposit() external payable nonReentrant {
+        uint256 amount = msg.value;
         if (amount == 0) revert ZeroDeposit();
 
         uint256 mintedShares;
@@ -352,8 +351,6 @@ contract LoanchPool is Ownable, ReentrancyGuard {
         totalWeightedShares += position.weightedShares - previousWeightedShares;
         saverPrincipalClaims += amount;
         liquidityReserveTarget = Math.mulDiv(saverPrincipalClaims, reserveBps, BPS);
-
-        _transferIn(msg.sender, amount);
 
         emit Deposited(msg.sender, amount);
     }
@@ -382,11 +379,11 @@ contract LoanchPool is Ownable, ReentrancyGuard {
         emit Withdrawn(msg.sender, amount);
     }
 
-    function stake(uint256 amount) external nonReentrant {
+    function stake() external payable nonReentrant {
+        uint256 amount = msg.value;
         if (amount == 0) revert ZeroAmount();
         freeStake[msg.sender] += amount;
         totalLockedStake += amount;
-        _transferIn(msg.sender, amount);
         emit StakeLocked(msg.sender, amount);
     }
 
@@ -429,7 +426,8 @@ contract LoanchPool is Ownable, ReentrancyGuard {
         emit LoanDisbursed(loanId, msg.sender, amount);
     }
 
-    function repayLoan(uint256 loanId, uint256 amount) external nonReentrant {
+    function repayLoan(uint256 loanId) external payable nonReentrant {
+        uint256 amount = msg.value;
         Loan storage loan = loans[loanId];
         if (loan.status != LoanStatus.Active) revert InvalidLoanState();
         if (msg.sender != loan.borrower) revert NotBorrower();
@@ -452,13 +450,12 @@ contract LoanchPool is Ownable, ReentrancyGuard {
             totalLockedStake -= loan.stakeAmount;
         }
 
-        _transferIn(msg.sender, amount);
         emit LoanRepaid(loanId, amount, remainingDebt(loanId));
         if (loan.status == LoanStatus.Completed) {
-            _transferOut(msg.sender, loan.stakeAmount);
-            emit StakeUnlocked(msg.sender, loan.stakeAmount);
             BorrowerProfile storage profile = borrowerProfiles[msg.sender];
             profile.reputation = profile.reputation > 95 ? 100 : profile.reputation + 5;
+            _transferOut(msg.sender, loan.stakeAmount);
+            emit StakeUnlocked(msg.sender, loan.stakeAmount);
             emit LoanCompleted(loanId);
         }
     }
@@ -495,7 +492,7 @@ contract LoanchPool is Ownable, ReentrancyGuard {
     }
 
     function withdrawPlatformRevenue(address recipient, uint256 amount) external onlyOwner nonReentrant {
-        if (recipient == address(0)) revert InvalidAsset();
+        if (recipient == address(0)) revert InvalidRecipient();
         if (amount == 0) revert ZeroAmount();
         if (amount > platformRevenue) revert InsufficientPlatformRevenue();
         if (liquidPoolAssets() < lossReserveAmount + saverReturnLiability + platformRevenue) {
@@ -550,24 +547,10 @@ contract LoanchPool is Ownable, ReentrancyGuard {
         position.rewardDebt = position.weightedShares * accReturnPerWeightedShare;
     }
 
-    function _transferIn(address from, uint256 amount) internal {
-        uint256 balanceBefore = asset.balanceOf(address(this));
-        asset.safeTransferFrom(from, address(this), amount);
-        uint256 balanceAfter = asset.balanceOf(address(this));
-        if (balanceAfter < balanceBefore || balanceAfter - balanceBefore != amount) {
-            revert UnsupportedTokenTransfer();
-        }
-    }
-
     function _transferOut(address to, uint256 amount) internal {
-        uint256 balanceBefore = asset.balanceOf(address(this));
-        uint256 recipientBefore = asset.balanceOf(to);
-        asset.safeTransfer(to, amount);
-        uint256 balanceAfter = asset.balanceOf(address(this));
-        uint256 recipientAfter = asset.balanceOf(to);
-        if (balanceAfter > balanceBefore || balanceBefore - balanceAfter != amount ||
-            recipientAfter < recipientBefore || recipientAfter - recipientBefore != amount) {
-            revert UnsupportedTokenTransfer();
-        }
+        // Destinations are the calling Saver/Borrower or an owner-authorized platform recipient.
+        // slither-disable-next-line arbitrary-send-eth
+        (bool success,) = payable(to).call{value: amount}("");
+        if (!success) revert NativeTransferFailed();
     }
 }

@@ -4,16 +4,17 @@ Errors are Solidity custom errors. The frontend should decode them from the ABI 
 
 | Error | Meaning |
 | --- | --- |
-| `InvalidAsset`, `InvalidReserveRatio`, `InvalidDistribution`, `InvalidScore`, `InvalidWeight` | Invalid deployment or owner configuration |
+| `InvalidRecipient`, `InvalidReserveRatio`, `InvalidDistribution`, `InvalidScore`, `InvalidWeight` | Invalid recipient, deployment, or owner configuration |
 | `IdentityNotVerified` | Reserved for ABI compatibility; unused by demo deposit and loan flows |
 | `LoanNotEligible(reason)` | Loan request failed; decode `reason` using the enum in `CONTRACT_INTERFACE.md` |
 | `ZeroDeposit`, `ZeroAmount`, `ZeroShares`, `ZeroWeightedShares`, `ZeroPrincipalSharePrice` | Zero or unrepresentable financial position |
 | `InsufficientPrincipal`, `InsufficientLiquidity`, `InsufficientStake`, `InsufficientPlatformRevenue` | Requested amount is not available |
 | `NothingToClaim` | No whole asset unit of Saver return is currently claimable |
 | `InvalidLoanState`, `NotBorrower`, `Overpayment`, `GracePeriodActive` | Loan payment or default condition failed |
-| `UnsupportedTokenTransfer` | Asset did not transfer exactly as requested |
+| `NativeTransferFailed` | Recipient rejected or failed to receive BOT |
+| `DirectPaymentUnsupported` | BOT was sent without calling deposit, stake, or repayment |
 | `OwnableUnauthorizedAccount` | Caller is not the owner |
-| `OwnableInvalidOwner`, `SafeERC20FailedOperation` | Inherited OpenZeppelin ownership or token operation error |
+| `OwnableInvalidOwner` | Inherited OpenZeppelin ownership error |
 | `ReentrancyGuardReentrantCall` | Nested financial call blocked |
 
 | Event | UI refresh target |

@@ -395,7 +395,7 @@ Ia berfungsi sebagai mesin aturan finansial yang mengelola dana dan status trans
 
 Perilaku:
 
-- menerima aset pengguna,
+- menerima BOT native melalui `deposit() payable`,
 - mencatat posisi deposit,
 - memperbarui total dana,
 - memperbarui dana yang tersedia,
@@ -539,6 +539,8 @@ Bagian Saver dibagikan menurut **share deposit aktif × bobot Saver** ketika mar
 80/15/5 adalah nilai awal. Admin tepercaya dapat mengubah ketiga persentase on-chain dengan total tetap 100%; perubahan hanya berlaku untuk margin yang diterima sesudahnya. Bobot Saver juga dapat diubah satu per satu secara on-chain. Hak yang telah diperoleh tidak dihitung ulang. Perubahan ke algoritme lain, seperti bobot berbasis lama simpan, memerlukan versi kontrak dan migrasi yang ditinjau.
 
 Smart contract menjalankan pembagian secara otomatis.
+
+Untuk MVP BOT Chain, satuan finansial on-chain adalah BOT native (18 desimal). Deposit, stake, dan repayment dikirim sebagai `msg.value`; withdrawal, loan disbursement, stake unlock, return claim, dan platform revenue dibayar sebagai BOT native. Kontrak tidak memakai ERC-20 allowance dan menolak transfer BOT langsung yang tidak melalui fungsi pembukuan.
 
 ---
 

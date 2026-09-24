@@ -563,11 +563,11 @@ Loan request yang lolos langsung membuat loan, mengalokasikan stake, dan mencair
 Target interface (nama final dapat disesuaikan bersama tes):
 
 ```solidity
-function deposit(uint256 amount) external;
+function deposit() external payable;
 function withdraw(uint256 amount) external; // langsung atau revert, tanpa antrean
-function stake(uint256 amount) external;
+function stake() external payable;
 function requestLoan(uint256 amount, uint256 duration) external returns (uint256 loanId);
-function repayLoan(uint256 loanId, uint256 amount) external;
+function repayLoan(uint256 loanId) external payable;
 function markDefault(uint256 loanId) external; // permissionless setelah tenggang
 function claimReturn() external;
 
@@ -709,7 +709,7 @@ Principal → Pool
 Return    → Distribution
 ```
 
-Definisi: `liquidPoolAssets` adalah saldo token likuid setelah stake terkunci dipisahkan. Dana untuk loan baru dibatasi oleh `liquidPoolAssets - liquidityReserveTarget - lossReserveAmount - saverReturnLiability - platformRevenue`; hitung dengan pemeriksaan batas sebelum pengurangan agar tidak underflow. Penarikan pokok dibatasi oleh `liquidPoolAssets - lossReserveAmount - saverReturnLiability - platformRevenue` dan klaim pokok Saver; klaim return dibatasi oleh likuiditas sesudah kewajiban pihak lain dipisahkan. Reserve likuiditas boleh membantu penarikan pokok, lalu targetnya dihitung ulang. `liquidityReserveTarget` tetap termasuk klaim Saver; `lossReserveAmount` merupakan bagian margin yang terpisah. Keduanya label pembukuan atas token yang sama, bukan token baru. Setelah default, nilai klaim Saver harus diturunkan sebelum penarikan berikutnya. Jangan menghitung stake sebagai modal pool.
+Definisi: `liquidPoolAssets` adalah saldo BOT native contract setelah stake terkunci dipisahkan. Dana untuk loan baru dibatasi oleh `liquidPoolAssets - liquidityReserveTarget - lossReserveAmount - saverReturnLiability - platformRevenue`; hitung dengan pemeriksaan batas sebelum pengurangan agar tidak underflow. Penarikan pokok dibatasi oleh `liquidPoolAssets - lossReserveAmount - saverReturnLiability - platformRevenue` dan klaim pokok Saver; klaim return dibatasi oleh likuiditas sesudah kewajiban pihak lain dipisahkan. Reserve likuiditas boleh membantu penarikan pokok, lalu targetnya dihitung ulang. `liquidityReserveTarget` tetap termasuk klaim Saver; `lossReserveAmount` merupakan bagian margin yang terpisah. Keduanya label pembukuan atas BOT yang sama. Setelah default, nilai klaim Saver harus diturunkan sebelum penarikan berikutnya. Jangan menghitung stake sebagai modal pool.
 
 Accounting implementation harus diuji menggunakan invariant tests.
 
@@ -807,9 +807,7 @@ Check BOT Chain
  ↓
 Enter Deposit Amount
  ↓
-Approve Asset if Required
- ↓
-deposit()
+deposit() payable dengan nilai BOT
  ↓
 MetaMask Confirmation
  ↓
@@ -916,25 +914,9 @@ Contoh: sisa pokok 100, stake 10, cadangan kerugian dari return 20: 70 mengurang
 
 ---
 
-# 19. Token / Asset Strategy for MVP
+# 19. Native BOT Asset Strategy for MVP
 
-Smart contract sebaiknya menggunakan asset berbasis token standar untuk memudahkan:
-
-- deposits,
-- loan transfer,
-- repayment,
-- staking,
-- balance accounting.
-
-Untuk development/test:
-
-```text
-MockToken.sol
-```
-
-dapat digunakan.
-
-Mock token hanya digunakan untuk testing/demo jika sesuai environment hackathon.
+Smart contract menggunakan BOT native sebagai satu-satunya aset untuk deposit, loan, repayment, staking, return, dan reserve. `deposit()` dan `stake()` menggunakan `msg.value`; `repayLoan(loanId)` menggunakan `msg.value` sebagai jumlah pembayaran. Tidak ada ERC-20 approval. Transfer BOT langsung ke contract tanpa memanggil fungsi payable yang ditentukan harus ditolak agar setiap dana masuk memiliki pembukuan.
 
 Tidak menggunakan nilai Rupiah langsung sebagai unit Solidity.
 
@@ -1107,7 +1089,7 @@ loanch/
 │
 ├── contracts/
 │   ├── LoanchPool.sol
-│   └── MockToken.sol
+│   └── LoanchPool.sol
 │
 ├── test/
 │   ├── deposit.test.ts
@@ -1653,7 +1635,7 @@ Mengubah aturan PRD menjadi kontrak interface yang tidak ambigu sebelum menulis 
 ## Work
 
 1. Audit implementasi yang sudah ada; jangan menulis ulang kode yang telah benar.
-2. Tetapkan asset token tunggal untuk deposit, loan, repayment, dan stake pada MVP.
+2. Tetapkan BOT native sebagai asset tunggal untuk deposit, loan, repayment, dan stake pada MVP.
 3. Finalkan state, struct, fungsi, custom error, event, dan access role yang dibutuhkan.
 4. Finalkan unit accounting: BPS, share precision, reward index precision, pembulatan, dan urutan checks-effects-interactions.
 5. Petakan setiap business rule ke fungsi dan test case.
@@ -1698,25 +1680,22 @@ Menyiapkan fondasi kompilasi, deployment lokal, dan keamanan dasar.
 ```text
 Hardhat + TypeScript configuration
 OpenZeppelin dependencies
-MockToken
 LoanchPool contract skeleton
 Ownable or AccessControl
 ReentrancyGuard
-SafeERC20
 Pausable only if used by defined emergency policy
 deployment fixture and local deploy script
 ```
 
-Constructor harus menolak alamat asset nol dan parameter awal invalid. Jangan mengimplementasikan deposit, loan, atau distribution penuh pada fase ini.
+Constructor harus menolak parameter awal invalid. Jangan mengimplementasikan deposit, loan, atau distribution penuh pada fase ini.
 
 ## Tests
 
 - deployment dengan parameter valid,
-- zero asset address rejected,
 - invalid BPS rejected,
 - admin role benar,
 - non-admin privileged call rejected,
-- mock token mint dan approve bekerja dalam fixture.
+- native BOT fixture tersedia untuk test payable.
 
 ## Definition of Done
 
@@ -1724,7 +1703,7 @@ Constructor harus menolak alamat asset nol dan parameter awal invalid. Jangan me
 
 ## Frontend Handoff
 
-Berikan chain config lokal, alamat mock token/contract lokal, dan ABI skeleton.
+Berikan chain config lokal, alamat contract lokal, dan ABI skeleton.
 
 ---
 
@@ -1789,7 +1768,7 @@ setSaverWeight with 5.000–20.000 BPS bounds
 pool statistics read functions
 ```
 
-Deposit harus menghitung share berdasarkan nilai pokok per share saat ini. Deposit setelah kerugian tidak boleh memperoleh hak atas nilai lama. Transfer token aktual dan accounting internal harus tetap cocok.
+Deposit harus menghitung share berdasarkan nilai pokok per share saat ini. Deposit setelah kerugian tidak boleh memperoleh hak atas nilai lama. `msg.value` dan accounting internal harus tetap cocok.
 
 ## Tests
 
@@ -1801,8 +1780,7 @@ Deposit harus menghitung share berdasarkan nilai pokok per share saat ini. Depos
 - default Saver weight diinisialisasi 1×,
 - perubahan Saver weight memperbarui user weighted shares dan total global,
 - Saver weight di luar 5.000–20.000 BPS rejected,
-- fee-on-transfer atau unsupported token behavior rejected,
-- direct token transfer tidak menciptakan Saver claim,
+- direct BOT transfer di luar fungsi payable ditolak,
 - rounding tidak menghasilkan posisi bernilai nol untuk deposit yang diterima.
 
 ## Invariants Introduced
@@ -1987,7 +1965,7 @@ Saat bobot Saver berubah, settle return lama pada bobot sebelumnya sebelum mengg
 
 ## Definition of Done
 
-Happy path penuh dari deposit hingga claim return lulus. Saldo token aktual sama dengan seluruh kewajiban dan aset yang dicatat setelah toleransi rounding yang terdokumentasi.
+Happy path penuh dari deposit hingga claim return lulus. Saldo BOT contract sama dengan seluruh kewajiban dan aset yang dicatat setelah toleransi rounding yang terdokumentasi.
 
 ## Frontend Handoff
 
@@ -2069,7 +2047,7 @@ invariant/fuzz tests for accounting
 ## Security Work
 
 1. Run Slither and triage every finding.
-2. Review all external calls and token transfer assumptions.
+2. Review all native BOT calls and recipient fallback assumptions.
 3. Review authorization for every privileged function.
 4. Review checks-effects-interactions and nonReentrant coverage.
 5. Review share inflation/donation and rounding attacks.
@@ -2103,7 +2081,6 @@ verify deployer testnet balance
 load RPC, chain ID, and deployer key from environment
 compile from clean checkout
 run full tests and Slither gate
-deploy asset/mock asset if required
 deploy LoanchPool with recorded constructor args
 configure initial admin parameters
 record transaction hashes and addresses
@@ -2133,7 +2110,7 @@ Kirim:
 ```text
 BOT Chain RPC URL
 chain ID
-asset address
+asset = native BOT
 LoanchPool address
 deployment block
 final ABI
