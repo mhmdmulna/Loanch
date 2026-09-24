@@ -24,8 +24,8 @@ export function Card({
   ...props
 }: CardProps) {
   const baseStyles =
-    'bg-slate-800 border rounded-xl shadow-lg overflow-hidden'
-  const borderStyles = highlighted ? 'border-emerald-500 border-2' : 'border-slate-700'
+    'loanch-panel overflow-hidden'
+  const borderStyles = highlighted ? 'border-[var(--loanch-accent)] border-2' : ''
 
   const combinedClassName = [baseStyles, borderStyles, className]
     .filter(Boolean)
@@ -43,12 +43,12 @@ export function CardHeader({
   className,
   ...props
 }: CardHeaderProps) {
-  const baseStyles = 'px-6 py-4 border-b border-slate-700'
+  const baseStyles = 'px-5 py-4 border-b border-[var(--loanch-border)]'
   const combinedClassName = [baseStyles, className].filter(Boolean).join(' ')
 
   return (
     <div className={combinedClassName} {...props}>
-      <h3 className="text-2xl font-bold text-slate-50">{children}</h3>
+      <h3 className="text-lg font-semibold tracking-[-0.02em] text-slate-50">{children}</h3>
     </div>
   )
 }
@@ -58,7 +58,7 @@ export function CardContent({
   className,
   ...props
 }: CardContentProps) {
-  const baseStyles = 'px-6 py-4'
+  const baseStyles = 'px-5 py-5'
   const combinedClassName = [baseStyles, className].filter(Boolean).join(' ')
 
   return (
@@ -74,7 +74,7 @@ export function CardFooter({
   ...props
 }: CardFooterProps) {
   const baseStyles =
-    'px-6 py-4 bg-slate-900 border-t border-slate-700 flex justify-between items-center'
+    'px-5 py-4 bg-[var(--loanch-surface-inset)] border-t border-[var(--loanch-border)] flex justify-between items-center'
   const combinedClassName = [baseStyles, className].filter(Boolean).join(' ')
 
   return (

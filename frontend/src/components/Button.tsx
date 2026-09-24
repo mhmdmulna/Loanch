@@ -10,21 +10,21 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white',
-  secondary: 'bg-slate-800 border border-slate-600 hover:bg-slate-700 text-slate-100',
+  primary: 'bg-[var(--loanch-accent)] hover:bg-[var(--loanch-accent-strong)] active:bg-[var(--loanch-accent-strong)] text-[var(--loanch-bg)]',
+  secondary: 'bg-transparent border border-[var(--loanch-border-strong)] hover:bg-[var(--loanch-surface-raised)] text-slate-100',
   danger: 'bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white',
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  small: 'px-2 py-1 text-sm',
-  medium: 'px-3 py-2 text-base',
-  large: 'px-4 py-3 text-base',
+  small: 'px-3 py-1.5 text-xs',
+  medium: 'px-4 py-2.5 text-sm',
+  large: 'px-5 py-3 text-sm',
 }
 
 const heightStyles: Record<ButtonSize, string> = {
-  small: 'h-8',
-  medium: 'h-10',
-  large: 'h-12',
+  small: 'min-h-8',
+  medium: 'min-h-10',
+  large: 'min-h-12',
 }
 
 export function Button({
@@ -38,7 +38,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'font-semibold rounded-lg focus:outline-2 focus:outline-offset-2 focus:outline-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+    'font-semibold rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--loanch-accent)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-normal tracking-[0.01em]'
 
   const variantClass = variantStyles[variant]
   const sizeClass = sizeStyles[size]

@@ -58,19 +58,19 @@ export function TransactionStatus({
   const config = statusConfig[state]
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="status" aria-live="polite">
       <div className="flex items-center justify-between">
         <Badge variant={config.variant} animated={state === 'confirming'}>
           {config.badge}
         </Badge>
         {txHash && (
-          <a
-            href={`#`}
-            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-            title={txHash}
+          <span
+            className="text-xs text-slate-500"
+            aria-disabled="true"
+            title="Explorer URL is not configured for this environment"
           >
-            View on explorer
-          </a>
+            Explorer link unavailable
+          </span>
         )}
       </div>
 
