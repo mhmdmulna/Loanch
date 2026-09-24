@@ -6,7 +6,7 @@ import { Badge } from "../components/Badge"
 import { NetworkGuard } from "../components/WalletComponents"
 import { TransactionStatus } from "../components/TransactionStatus"
 import { useWallet } from "../hooks/useWallet"
-import type { TransactionState } from "../types"
+import type { Page, TransactionState } from "../types"
 
 // Mock pool data - clearly labeled as demo
 const mockPoolData = {
@@ -16,7 +16,7 @@ const mockPoolData = {
   availableLiquidity: "490,000"
 }
 
-type Page = "landing" | "dashboard" | "saver" | "borrower"
+
 
 interface SaverPageProps {
   onNavigate: (page: Page) => void

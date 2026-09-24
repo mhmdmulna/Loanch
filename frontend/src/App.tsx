@@ -1,29 +1,35 @@
-﻿import { useState } from "react"
-import { LandingPage } from "./components/LandingPage"
-import { Dashboard } from "./components/Dashboard"
-import { SaverPage } from "./pages/SaverPage"
-import { BorrowerPage } from "./pages/BorrowerPage"
-
-type Page = "landing" | "dashboard" | "saver" | "borrower"
+import { useState } from "react"
+import { Navbar, Footer, LandingPage, Dashboard } from "./components"
+import { SaverPage, BorrowerPage, LoansPage, PoolPage, ReputationPage, BlockchainPage } from "./pages"
+import type { Page } from "./types"
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("landing")
 
   const navigate = (page: Page) => {
     setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  // Simple navigation - in a real app, this would use React Router
-  switch (currentPage) {
-    case "dashboard":
-      return <Dashboard onNavigate={navigate} />
-    case "saver":
-      return <SaverPage onNavigate={navigate} />
-    case "borrower":
-      return <BorrowerPage onNavigate={navigate} />
-    default:
-      return <LandingPage onNavigate={navigate} />
+  if (currentPage === "landing") {
+    return <LandingPage onNavigate={navigate} />
   }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+      <Navbar currentPage={currentPage} onNavigate={navigate} />
+      <main className="flex-1">
+        {currentPage === "dashboard" && <Dashboard onNavigate={navigate} />}
+        {currentPage === "saver" && <SaverPage onNavigate={navigate} />}
+        {currentPage === "borrower" && <BorrowerPage onNavigate={navigate} />}
+        {currentPage === "loans" && <LoansPage onNavigate={navigate} />}
+        {currentPage === "pool" && <PoolPage onNavigate={navigate} />}
+        {currentPage === "reputation" && <ReputationPage onNavigate={navigate} />}
+        {currentPage === "transparency" && <BlockchainPage onNavigate={navigate} />}
+      </main>
+      <Footer onNavigate={navigate} />
+    </div>
+  )
 }
 
 export default App

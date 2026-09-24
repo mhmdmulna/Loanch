@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Component exports for Loanch frontend
  */
 
@@ -22,3 +22,8 @@ export { WalletButton, WalletStatus, NetworkGuard } from "./WalletComponents"
 export { LandingPage } from "./LandingPage"
 
 export { Dashboard } from "./Dashboard"
+
+export { Navbar } from "./Navbar"
+
+export { Footer } from "./Footer"
+

@@ -1,8 +1,8 @@
-﻿import { Button } from "./Button"
+import { Button } from "./Button"
 import { Card, CardContent, CardHeader } from "./Card"
 import { WalletButton } from "./WalletComponents"
-
-type Page = "landing" | "dashboard" | "saver" | "borrower"
+import { Footer } from "./Footer"
+import type { Page } from "../types"
 
 interface LandingPageProps {
   onNavigate: (page: Page) => void
@@ -49,7 +49,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <WalletButton size="large">Connect Wallet to Start</WalletButton>
-            <Button variant="secondary" size="large" onClick={() => onNavigate("dashboard")}>
+            <Button variant="secondary" size="large" onClick={() => onNavigate("pool")}>
               Explore Pool Transparency
             </Button>
           </div>
@@ -290,18 +290,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
-      <footer className="bg-slate-900 border-t border-slate-800 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="text-xl font-bold text-slate-100 mb-4">Loanch</div>
-            <p className="text-slate-400 text-sm mb-8">
-              Programmable lending platform powered by smart contracts on BOT Chain.
-            </p>
-            <p className="text-slate-400 text-sm">Copyright 2024 Loanch. All rights reserved.</p>
-            <p className="text-slate-500 text-xs mt-2">Built for BOT Chain hackathon</p>
-          </div>
-        </div>
-      </footer>
+      <Footer onNavigate={onNavigate} />
     </div>
   )
 }
+

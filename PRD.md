@@ -27,14 +27,15 @@ Membangun MVP Loanch yang memungkinkan:
 3. Saver melakukan deposit ke loan pool.
 4. Sistem menyisihkan liquidity reserve.
 5. Borrower mengajukan pinjaman.
-6. Sistem memeriksa eligibility sederhana.
-7. Borrower mengunci stake.
+6. Sistem memeriksa identitas dan kelayakan risiko.
+7. Borrower mengunci stake sebelum loan request.
 8. Smart contract mencairkan pinjaman.
 9. Borrower melakukan repayment.
 10. Smart contract memperbarui status loan.
 11. Stake dibuka kembali setelah loan selesai.
 12. Return didistribusikan sesuai aturan sistem.
-13. User dapat melihat transparansi kondisi pool melalui dashboard.
+13. Loan yang melewati masa tenggang dapat ditandai default, dengan pemotongan stake, penggunaan cadangan, kerugian Saver, dan penalti reputasi.
+14. User dapat melihat transparansi kondisi pool melalui dashboard.
 
 MVP harus berfungsi end-to-end dan dapat didemonstrasikan pada jaringan BOT Chain.
 
@@ -98,17 +99,17 @@ Setiap perubahan finansial harus menghasilkan state yang konsisten.
 Development dilakukan per fitur:
 
 ```text
-Implement
+Select One Phase
    ↓
-Compile
+Implement Only That Scope
    ↓
-Unit Test
+Compile + Unit Test
    ↓
-Security Check
+Run Existing Regression Tests
    ↓
-Frontend Integration
+Review Accounting and Security
    ↓
-End-to-End Test
+Publish Contract Handoff Artifacts
 ```
 
 Tidak mengimplementasikan seluruh sistem sekaligus.
@@ -131,17 +132,17 @@ MVP harus mencakup:
 
 ### Saver
 
+- Menggunakan identitas terverifikasi yang sama dengan Borrower.
 - Deposit asset.
 - Melihat posisi deposit.
 - Melihat estimated/accumulated return.
-- Request withdrawal.
-- Withdrawal jika liquidity tersedia.
+- Withdrawal langsung saat likuiditas cukup; jika kurang transaksi revert tanpa state pending.
 
 ### Borrower
 
 - Mendapat status identity verification sederhana.
 - Mendapat risk eligibility sederhana.
-- Mengunci stake.
+- Mengunci stake sebelum request loan.
 - Mengajukan loan.
 - Mendapat loan jika memenuhi rules.
 - Melakukan repayment.
@@ -165,6 +166,7 @@ MVP harus mencakup:
 - Partial repayment.
 - Full repayment.
 - Loan completion.
+- Default setelah masa tenggang, loss waterfall dan penalti reputasi.
 
 ### Distribution
 
@@ -202,7 +204,10 @@ Tidak perlu membangun:
 - cross-chain lending,
 - governance protocol,
 - dynamic interest-rate market,
-- advanced tokenomics.
+- advanced tokenomics,
+- withdrawal queue,
+- repayment dan recovery setelah default,
+- perubahan algoritme pembobotan Saver tanpa migrasi kontrak.
 
 Jika dibutuhkan untuk demo, fitur external verification boleh menggunakan mock atau admin-controlled verification.
 
@@ -255,7 +260,7 @@ wagmi
 viem
 ```
 
-Jika menggunakan `ethers.js`, tidak perlu menambahkan `wagmi + viem` kecuali terdapat kebutuhan spesifik.
+Gunakan `ethers.js` pada seluruh contoh implementasi. `wagmi + viem` hanya alternatif satu paket; jangan menggabungkan keduanya tanpa kebutuhan teknis yang jelas.
 
 ---
 
@@ -381,7 +386,7 @@ Untuk MVP sederhana, layer ini dapat diganti dengan mock verification.
 │                                                     │
 │  ┌──────────────┐       ┌────────────────────────┐  │
 │  │ UI / Pages   │──────▶│ Web3 Integration      │  │
-│  │              │       │ wagmi + viem          │  │
+│  │              │       │ ethers.js            │  │
 │  └──────────────┘       └───────────┬────────────┘  │
 └─────────────────────────────────────┼───────────────┘
                                       │
@@ -425,7 +430,7 @@ Smart contract bertanggung jawab atas:
 
 - deposits,
 - pool accounting,
-- reserve accounting,
+- liquidity and loss reserve accounting,
 - withdrawal rules,
 - loan state,
 - loan principal,
@@ -433,7 +438,7 @@ Smart contract bertanggung jawab atas:
 - remaining debt,
 - staking,
 - stake unlock,
-- stake slash jika diimplementasikan,
+- stake slash dan loss accounting ketika default,
 - financial state transitions,
 - profit distribution,
 - important financial events.
@@ -477,16 +482,16 @@ LoanchPool.sol
 ├── reserve accounting
 ├── available liquidity
 │
-├── borrower verification state
+├── user identity dan borrower risk state
 ├── loan request
 ├── loan creation
 ├── disbursement
 │
 ├── staking
 ├── repayment
-├── loan completion
+├── loan completion dan default
 │
-└── profit distribution
+└── profit distribution dan loss accounting
 ```
 
 Jika contract menjadi terlalu besar, logic dapat dipisahkan kemudian.
@@ -508,127 +513,76 @@ Namun modularisasi tidak boleh dilakukan hanya demi arsitektur jika menambah kom
 
 Contoh state minimal.
 
-## 9.1 Saver Position
+## 9.1 User, Saver, dan Borrower
+
+Satu address dapat menjadi kedua peran. Identitas disimpan sekali; risiko dan reputasi terkait kemampuan meminjam.
 
 ```solidity
-struct SaverPosition {
-    uint256 depositedAmount;
-    uint256 withdrawableAmount;
-    uint256 accumulatedReturn;
+mapping(address => bool) public identityVerified;
+mapping(address => BorrowerProfile) public borrowerProfiles;
+
+struct BorrowerProfile {
+    uint256 riskScore; // 0..100
+    uint256 reputation; // 0..100
+    bool blockedAfterDefault;
 }
 ```
 
----
+Deposit dan loan memerlukan identitas terverifikasi. Loan juga memerlukan skor risiko yang memenuhi ambang. Admin tepercaya mengatur status demo; tidak ada dokumen identitas pribadi di chain.
+
+Posisi Saver berbasis `shares`, `weightBps`, `weightedShares`, `rewardDebt`, dan `claimableReturn`. Bobot default 10.000 BPS (1×) harus diinisialisasi saat deposit pertama; batas bobot 5.000–20.000 BPS (0,5×–2×). `weightedShares = shares × weightBps / BPS`, dan simpan `totalWeightedShares` global. Gunakan indeks return per weighted share dan nilai klaim pokok per share biasa agar return serta kerugian dapat dibukukan tanpa iterasi seluruh Saver. `depositedAmount` menjadi nilai turunan dari share, bukan angka tetap ketika terjadi kerugian. Tidak ada `pendingWithdrawal`.
 
 ## 9.2 Loan
 
 ```solidity
-enum LoanStatus {
-    None,
-    Requested,
-    Active,
-    Completed,
-    Defaulted
-}
-```
+enum LoanStatus { None, Active, Completed, Defaulted }
 
-```solidity
 struct Loan {
     uint256 id;
     address borrower;
     uint256 principal;
+    uint256 principalOutstanding;
     uint256 totalRepayment;
     uint256 amountPaid;
-    uint256 remainingDebt;
     uint256 dueDate;
     uint256 stakeAmount;
     LoanStatus status;
 }
 ```
 
-Exact fields dapat disesuaikan selama tidak mengubah aturan bisnis.
+Loan request yang lolos langsung membuat loan, mengalokasikan stake, dan mencairkan dana secara atomik. Tidak ada status `Requested` yang menunggu persetujuan. Untuk MVP, satu borrower hanya boleh memiliki satu loan aktif.
 
----
+## 9.3 Pool dan Parameter
 
-## 9.3 Borrower Eligibility
-
-Minimal state:
-
-```solidity
-struct BorrowerProfile {
-    bool identityVerified;
-    uint256 riskScore;
-    uint256 reputation;
-}
-```
-
-Untuk hackathon, verification dapat diatur oleh trusted/admin address.
+`BPS = 10_000`; nilai awal `reserveBps = 2_000`, `saverBps = 8_000`, `platformBps = 1_500`, dan `reserveReturnBps = 500`. Tiga BPS pembagian return harus berjumlah 10.000. Pisahkan `liquidityReserveTarget` (20% dari klaim pokok Saver, hanya batas loan baru dan tetap milik Saver) dari `lossReserveAmount` (akumulasi bagian margin 5%, penanggung rugi setelah stake). Jangan memakai 20% deposit sebagai modal penanggung rugi independen. Stake, return yang dapat diklaim, dan platform revenue dicatat terpisah dari dana yang boleh dipinjamkan. `withdraw(amount)` menarik pokok berdasarkan nilai share saat ini; `claimReturn()` menarik return yang sudah menjadi hak Saver, dan kedua operasi memeriksa likuiditas tanpa mengurangi hak dua kali.
 
 ---
 
 # 10. Core Contract Functions
 
-Minimum target interface:
+Target interface (nama final dapat disesuaikan bersama tes):
 
 ```solidity
 function deposit(uint256 amount) external;
-```
-
-```solidity
-function requestWithdrawal(uint256 amount) external;
-```
-
-```solidity
-function withdraw() external;
-```
-
-```solidity
+function withdraw(uint256 amount) external; // langsung atau revert, tanpa antrean
 function stake(uint256 amount) external;
-```
+function requestLoan(uint256 amount, uint256 duration) external returns (uint256 loanId);
+function repayLoan(uint256 loanId, uint256 amount) external;
+function markDefault(uint256 loanId) external; // permissionless setelah tenggang
+function claimReturn() external;
 
-```solidity
-function requestLoan(
-    uint256 amount,
-    uint256 duration
-) external;
-```
+function setIdentityVerification(address user, bool verified) external; // admin
+function setBorrowerRiskScore(address user, uint256 score) external; // admin
+function setDistributionBps(uint256 saver, uint256 platform, uint256 reserve) external; // admin
+function setSaverWeight(address user, uint256 weightBps) external; // admin, 5_000..20_000
 
-```solidity
-function repayLoan(
-    uint256 loanId,
-    uint256 amount
-) external;
-```
-
-Read functions:
-
-```solidity
 function getPoolStats() external view returns (...);
-```
-
-```solidity
 function getSaverPosition(address user) external view returns (...);
-```
-
-```solidity
 function getLoan(uint256 loanId) external view returns (...);
-```
-
-```solidity
 function getBorrowerProfile(address user) external view returns (...);
 ```
 
-Admin / verification function jika dibutuhkan:
-
-```solidity
-function setBorrowerVerification(
-    address user,
-    bool verified,
-    uint256 riskScore
-) external;
-```
-
-Exact naming dapat berubah, tetapi responsibility harus dipertahankan.
+Stake bebas harus sudah terkunci sebelum `requestLoan`; jumlah yang dialokasikan ke loan aktif tidak dapat dipakai ulang. Stake bebas yang belum dialokasikan dapat ditarik dengan fungsi tersendiri; stake aktif tidak bisa. Simpan due date dan stake per loan. Jangan berikan admin jalan pintas untuk menandai default sebelum syarat waktu terpenuhi.
 
 ---
 
@@ -640,13 +594,6 @@ Recommended:
 
 ```solidity
 event Deposited(
-    address indexed saver,
-    uint256 amount
-);
-```
-
-```solidity
-event WithdrawalRequested(
     address indexed saver,
     uint256 amount
 );
@@ -697,10 +644,15 @@ event LoanCompleted(
 ```
 
 ```solidity
-event StakeUnlocked(
-    address indexed borrower,
-    uint256 amount
-);
+event StakeUnlocked(address indexed borrower, uint256 amount);
+event LoanDefaulted(uint256 indexed loanId, uint256 unpaidPrincipal);
+event StakeSlashed(uint256 indexed loanId, uint256 amount);
+event ReserveUsed(uint256 indexed loanId, uint256 amount);
+event SaverLossRecognized(uint256 indexed loanId, uint256 amount);
+event ReputationPenalized(address indexed borrower, uint256 newScore);
+event DistributionBpsUpdated(uint256 saver, uint256 platform, uint256 reserve);
+event SaverWeightUpdated(address indexed user, uint256 oldWeightBps, uint256 newWeightBps);
+event IdentityVerificationUpdated(address indexed user, bool verified);
 ```
 
 Events digunakan untuk:
@@ -718,11 +670,14 @@ Events digunakan untuk:
 Core variables:
 
 ```text
-totalDeposits
-availableLiquidity
-reserveAmount
+saverPrincipalClaims (share-adjusted)
+liquidPoolAssets
+liquidityReserveTarget
+lossReserveAmount
 activeLoanPrincipal
+saverReturnLiability
 platformRevenue
+lockedStake (segregated)
 ```
 
 Conceptual accounting:
@@ -754,6 +709,8 @@ Principal → Pool
 Return    → Distribution
 ```
 
+Definisi: `liquidPoolAssets` adalah saldo token likuid setelah stake terkunci dipisahkan. Dana untuk loan baru dibatasi oleh `liquidPoolAssets - liquidityReserveTarget - lossReserveAmount - saverReturnLiability - platformRevenue`; hitung dengan pemeriksaan batas sebelum pengurangan agar tidak underflow. Penarikan pokok dibatasi oleh `liquidPoolAssets - lossReserveAmount - saverReturnLiability - platformRevenue` dan klaim pokok Saver; klaim return dibatasi oleh likuiditas sesudah kewajiban pihak lain dipisahkan. Reserve likuiditas boleh membantu penarikan pokok, lalu targetnya dihitung ulang. `liquidityReserveTarget` tetap termasuk klaim Saver; `lossReserveAmount` merupakan bagian margin yang terpisah. Keduanya label pembukuan atas token yang sama, bukan token baru. Setelah default, nilai klaim Saver harus diturunkan sebelum penarikan berikutnya. Jangan menghitung stake sebagai modal pool.
+
 Accounting implementation harus diuji menggunakan invariant tests.
 
 ---
@@ -765,14 +722,18 @@ Contract tidak boleh melanggar rules berikut.
 ### Pool
 
 ```text
-availableLiquidity >= 0
-reserveAmount >= 0
+availableLending >= 0
+liquidityReserveTarget >= 0
+lossReserveAmount >= 0
+liquidPoolAssets + activeLoanPrincipal >= saverPrincipalClaims + saverReturnLiability + platformRevenue + lossReserveAmount, kecuali ketika kerugian belum diselesaikan dalam transaksi atomik
 ```
 
 ### Withdrawal
 
 ```text
-withdrawAmount <= saver available balance
+withdrawAmount <= saver principal claim (share-adjusted)
+withdrawAmount <= liquid funds after segregated liabilities; otherwise revert, no pending state
+claimReturn <= accrued user return and liquid funds after other liabilities
 ```
 
 ### Lending
@@ -817,6 +778,8 @@ double withdrawal
 double loan disbursement
 double repayment after completion
 double stake unlock
+double default/slash
+withdrawal of phantom principal after loss
 ```
 
 ---
@@ -824,36 +787,12 @@ double stake unlock
 # 14. Loan State Machine
 
 ```text
-REQUESTED
-    │
-    │ eligibility passed
-    ▼
-ACTIVE
-    │
-    ├── repayment complete
-    │        ↓
-    │    COMPLETED
-    │
-    └── default condition
-             ↓
-         DEFAULTED
+requestLoan + validation + disbursement → Active
+Active + remainingDebt == 0 → Completed
+Active + remainingDebt > 0 + time > dueDate + 7 hari + markDefault → Defaulted
 ```
 
-State transition yang tidak valid harus di-revert.
-
-Contoh:
-
-```text
-Completed → Active
-```
-
-tidak boleh terjadi.
-
-```text
-Defaulted → Requested
-```
-
-tidak boleh terjadi pada loan yang sama.
+`Completed` dan `Defaulted` terminal untuk MVP. Sampai `markDefault` dicatat, loan yang terlambat masih bisa dilunasi. Tidak ada perubahan status otomatis hanya karena jam berlalu; siapa pun boleh memicu `markDefault` bila syaratnya terpenuhi. Eksekusi kedua dan transisi balik revert.
 
 ---
 
@@ -865,6 +804,8 @@ User
 Connect MetaMask
  ↓
 Check BOT Chain
+ ↓
+Check identityVerified
  ↓
 Enter Deposit Amount
  ↓
@@ -955,43 +896,25 @@ Stake Unlocked
 Reputation Updated
 ```
 
-Partial repayment harus tetap mempertahankan loan dalam status active.
+Partial repayment mempertahankan status Active. Setiap pembayaran melunasi pokok dahulu, lalu margin; return diakui hanya untuk margin yang benar-benar diterima. Pembayaran setelah jatuh tempo tetapi sebelum default tetap diterima. Setelah Defaulted tidak ada repayment pada MVP.
 
 ---
 
-# 18. Profit Distribution
+# 18. Profit Distribution and Default
 
-Untuk MVP, distribution logic mengikuti parameter yang telah ditetapkan oleh Loanch.
+## 18.1 Return Saver
 
-Conceptual:
+Margin yang benar-benar diterima dibagi dengan BPS awal 80% Saver, 15% platform, 5% reserve. Bagian Saver dibagi berdasarkan **weighted shares saat margin diterima**: `userReturn = saverAllocation * userWeightedShares / totalWeightedShares`. Bobot setiap Saver awalnya 10.000 BPS (1×), sehingga perhitungan awal identik dengan pro-rata share biasa. Gunakan indeks reward kumulatif per weighted share dan reward debt; tidak boleh mengiterasi semua wallet pada setiap repayment. Deposit baru tidak berhak atas return lampau. Setelah terjadi kerugian, share baru dicetak berdasarkan nilai pokok per share terbaru; deposit baru tidak boleh membayar kerugian lama. Jika klaim pokok menjadi nol sementara share lama masih beredar, hentikan deposit/withdraw normal sampai mekanisme recapitalization ditentukan; jangan reset harga share diam-diam. Selesaikan akrual milik user sebelum deposit/withdraw atau perubahan bobot; simpan sisa pembulatan agar tidak dibayar ganda.
 
-```text
-Repayment Return
-      │
-      ├── Saver Allocation
-      ├── Platform Allocation
-      └── Reserve Allocation
-```
+Admin tepercaya boleh mengubah ketiga BPS lewat transaksi `setDistributionBps` jika jumlahnya persis 10.000. Admin juga boleh mengubah `weightBps` suatu Saver dalam rentang 5.000–20.000: selesaikan akrual return lama miliknya pada bobot sebelumnya, keluarkan weighted shares lama dari total global, masukkan nilai baru, kemudian simpan reward debt pada indeks saat ini. Ini membuat rumus pembagian dapat disetel secara dinamis **tanpa mengubah return lampau** dan tanpa loop seluruh Saver. Saat deposit atau withdrawal, lakukan langkah akrual dan perbarui kedua total share dengan urutan serupa; cegah `weightedShares == 0` untuk posisi nonnol akibat pembulatan. Event dan bobot efektif ditampilkan pada dashboard agar kebijakan admin terlihat. Jika margin diterima ketika `totalWeightedShares == 0`, arahkan bagian Saver ke cadangan kerugian dan emit event. Algoritme lain di luar bobot per Saver memerlukan kontrak versi baru, tes, dan migrasi hak yang ada.
 
-Parameter distribution harus:
+## 18.2 Default dan Kerugian
 
-- tersimpan secara eksplisit,
-- diuji,
-- tidak menghasilkan total allocation > 100%.
+Pada loan creation, simpan `dueDate` dan `principalOutstanding`. `markDefault(loanId)` hanya boleh jika status Active, `block.timestamp > dueDate + 7 days`, dan utang belum lunas. Siapa pun boleh memanggil; sekali saja. Repayment menurunkan principalOutstanding dahulu, baru mencatat margin. Margin belum dibayar tidak menjadi kerugian pokok atau return.
 
-Gunakan basis point atau constant denominator untuk menghindari floating point.
+Waterfall atomik: (1) potong `min(stakeAmount, principalOutstanding)` dari stake loan untuk menutup pokok dan kembalikan sisanya, (2) gunakan `min(lossReserveAmount, remainingLoss)` dari cadangan kerugian yang terkumpul dari margin, (3) catat sisa kerugian terhadap klaim pokok Saver pro-rata melalui penurunan nilai pokok per share. Perbarui active principal dan status tepat sekali. Kurangi reputasi 20 poin, minimum nol, dan blokir pinjaman baru bagi borrower default. Penagihan/recovery setelah default di luar MVP.
 
-Contoh:
-
-```solidity
-uint256 constant BPS = 10_000;
-```
-
-```text
-8000 = 80%
-1500 = 15%
-500  = 5%
-```
+Contoh: sisa pokok 100, stake 10, cadangan kerugian dari return 20: 70 mengurangi klaim Saver. Jika Alice memiliki 10% dan Budi 90% share, kerugian masing-masing 7 dan 63. Cadangan likuiditas dari deposit tidak dihitung sebagai 20 cadangan kerugian dalam contoh ini. Kewajiban return yang sudah terakumulasi tetap dibukukan terpisah; apabila aset tidak cukup, jangan menampilkan seluruhnya seolah langsung dapat ditarik. Uji pembulatan, solvabilitas, penarikan beruntun, pengguna yang sekaligus Saver dan Borrower, serta pencairan baru setelah default. Tidak boleh ada loop semua Saver.
 
 ---
 
@@ -1106,9 +1029,9 @@ DepositForm
     ↓
 useDeposit()
     ↓
-wagmi
+ethers.js (BrowserProvider + Contract)
     ↓
-viem
+MetaMask / BOT Chain
     ↓
 Loanch Contract
 ```
@@ -1262,6 +1185,7 @@ Minimum test cases:
 ```text
 deposit succeeds
 zero deposit rejected
+share issuance after loss uses current price; zero-price state guarded
 pool increases correctly
 reserve calculated correctly
 saver position updated
@@ -1272,14 +1196,15 @@ saver position updated
 ```text
 withdraw within balance
 withdraw above balance rejected
-withdraw when liquidity insufficient
+withdraw when liquidity insufficient reverts and creates no pending state
 double withdrawal rejected
 ```
 
 ### Borrower
 
 ```text
-unverified borrower rejected
+unverified user deposit and loan rejected
+same verified wallet can deposit and borrow
 risk requirement failure rejected
 insufficient stake rejected
 ```
@@ -1309,6 +1234,7 @@ completed loan cannot repay again
 stake locked
 stake unavailable during active loan
 stake unlocked after completion
+locked stake cannot be reused across active loans
 ```
 
 ### Distribution
@@ -1318,6 +1244,22 @@ saver allocation correct
 platform allocation correct
 reserve allocation correct
 total allocation equals expected amount
+unequal share pro-rata at default 1x weight, deposit between repayments, rounding
+changing a Saver weight settles prior rewards and affects future margin only
+dynamic distribution BPS applies only to future margin
+```
+
+### Default
+
+```text
+before grace period rejected; late repayment before default accepted
+liquidity reserve cannot be counted as separate first-loss capital
+loss reserve from margin is depleted before Saver haircut
+any caller can default eligible loan once
+stake slash limited to unpaid principal and surplus returned
+reserve covers next; remainder reduces Saver claim
+reputation penalty bounded at zero; future loan blocked
+subsequent withdrawal reflects loss; no double compensation
 ```
 
 ---
@@ -1333,7 +1275,7 @@ Saver deposits 1000
  ↓
 Reserve created
  ↓
-Borrower verified
+User identity verified and risk score set
  ↓
 Borrower stakes
  ↓
@@ -1433,8 +1375,9 @@ Slither bukan pengganti manual review.
 Jika terdapat privileged action seperti:
 
 ```text
-verify borrower
+verify user identity
 update risk score
+update distribution BPS
 pause contract
 ```
 
@@ -1636,406 +1579,665 @@ Important events harus dapat digunakan untuk tracing demo.
 
 ---
 
-# 38. Development Workflow
+# 38. Implementation Roadmap — Smart Contract Track
 
-Recommended development sequence:
+Roadmap ini mengatur pekerjaan **smart contract, automated tests, deployment, dan contract handoff**. Implementasi frontend dikerjakan oleh rekan secara paralel dan tidak menjadi bagian dari fase-fase ini.
+
+## 38.1 Execution Rule
+
+Codex hanya mengerjakan **satu fase dalam satu task**. Jangan melanjutkan otomatis ke fase berikutnya. Setiap fase harus berakhir dengan:
 
 ```text
-PHASE 1
-Project Setup
+implementation for current phase only
+      ↓
+compile succeeds
+      ↓
+new phase tests pass
+      ↓
+all previous tests still pass
+      ↓
+diff and accounting review
+      ↓
+phase report + frontend handoff update
+```
 
-        ↓
+Jika sebuah keputusan dari fase sebelumnya harus diubah, perbarui spesifikasi, jelaskan dampaknya, dan jalankan kembali seluruh regression test yang terpengaruh.
 
-PHASE 2
-Core Solidity Contract
+## 38.2 Frontend Parallel Boundary
 
-        ↓
+Tim smart contract menyediakan interface stabil bagi rekan frontend melalui:
 
-PHASE 3
-Unit Tests
+```text
+contracts/abi/LoanchPool.json
+deployments/bot-chain.json
+docs/CONTRACT_INTERFACE.md
+docs/ERRORS_AND_EVENTS.md
+.env.example
+```
 
-        ↓
+Handoff minimal berisi:
 
-PHASE 4
-Security Review
+- contract address dan chain ID,
+- Application Binary Interface (ABI),
+- daftar fungsi read dan write,
+- parameter serta return value,
+- custom error dan arti untuk user,
+- event yang digunakan untuk refresh data,
+- contoh data demo dan urutan transaksi,
+- perubahan interface sejak handoff sebelumnya.
 
-        ↓
+Frontend tidak perlu menunggu seluruh kontrak selesai. ABI sementara boleh diberikan setelah suatu modul lolos tes, tetapi harus diberi label `provisional`. Breaking change wajib dicatat segera.
 
-PHASE 5
-Frontend Mock UI
+## 38.3 Dependency Order
 
-        ↓
-
-PHASE 6
-Wallet Integration
-
-        ↓
-
-PHASE 7
-Contract Integration
-
-        ↓
-
-PHASE 8
-Identity / Eligibility Layer
-
-        ↓
-
-PHASE 9
-End-to-End Testing
-
-        ↓
-
-PHASE 10
-BOT Chain Deployment
-
-        ↓
-
-PHASE 11
-Production Frontend Deployment
-
-        ↓
-
-PHASE 12
-Submission Verification
+```text
+1. Specification Freeze
+2. Project Foundation
+3. Identity and Configuration
+4. Deposit and Share Accounting
+5. Saver Withdrawal
+6. Stake and Eligibility
+7. Loan Creation and Disbursement
+8. Repayment and Return Distribution
+9. Default and Loss Accounting
+10. Full-System Security Validation
+11. BOT Chain Deployment
+12. Demo and Submission Validation
 ```
 
 ---
 
-# 39. Phase 1 — Project Setup
+# 39. Phase 1 — Specification and Interface Freeze
 
-Tasks:
+## Goal
+
+Mengubah aturan PRD menjadi kontrak interface yang tidak ambigu sebelum menulis fitur baru.
+
+## Work
+
+1. Audit implementasi yang sudah ada; jangan menulis ulang kode yang telah benar.
+2. Tetapkan asset token tunggal untuk deposit, loan, repayment, dan stake pada MVP.
+3. Finalkan state, struct, fungsi, custom error, event, dan access role yang dibutuhkan.
+4. Finalkan unit accounting: BPS, share precision, reward index precision, pembulatan, dan urutan checks-effects-interactions.
+5. Petakan setiap business rule ke fungsi dan test case.
+6. Buat `docs/CONTRACT_INTERFACE.md` serta `docs/ERRORS_AND_EVENTS.md` versi awal.
+
+## Required Decisions
 
 ```text
-Initialize repository
-Initialize frontend
-Initialize Hardhat
-Install OpenZeppelin
-Configure linting
-Configure environment variables
-Add Loanch.md
-Add PRD.md
-Add AGENTS.md
+one verified wallet can be Saver and Borrower
+verified identity required for deposit and loan
+one active loan per borrower
+stake locked before requestLoan
+withdraw is immediate or reverts
+principal repaid before margin
+grace period = 7 days
+default waterfall = stake → loss reserve → Saver principal haircut
+initial return split = 80% / 15% / 5%
+Saver weight = 0.5x–2x; default 1x
 ```
 
-Definition of Done:
+## Definition of Done
 
-```text
-frontend starts locally
-Hardhat compiles sample contract
-repository structure ready
-```
+- Tidak ada rule penting yang masih memiliki dua interpretasi.
+- Function/event/error matrix selesai.
+- Test matrix untuk seluruh fase tersedia.
+- Belum ada perubahan behavior kontrak kecuali perbaikan dokumentasi.
+
+## Frontend Handoff
+
+Kirim draft fungsi read/write, event, custom error, dan bentuk data. Tandai ABI sebagai `provisional`.
 
 ---
 
-# 40. Phase 2 — Core Solidity
+# 40. Phase 2 — Project and Contract Foundation
 
-Implement:
+## Goal
+
+Menyiapkan fondasi kompilasi, deployment lokal, dan keamanan dasar.
+
+## Implement
 
 ```text
+Hardhat + TypeScript configuration
+OpenZeppelin dependencies
 MockToken
-Deposit
-Saver Position
-Pool
-Reserve
-Borrower Profile
-Stake
-Loan Request
-Loan Creation
-Disbursement
-Repayment
-Loan Completion
-Distribution
+LoanchPool contract skeleton
+Ownable or AccessControl
+ReentrancyGuard
+SafeERC20
+Pausable only if used by defined emergency policy
+deployment fixture and local deploy script
 ```
 
-Tidak mengintegrasikan frontend pada fase ini.
+Constructor harus menolak alamat asset nol dan parameter awal invalid. Jangan mengimplementasikan deposit, loan, atau distribution penuh pada fase ini.
+
+## Tests
+
+- deployment dengan parameter valid,
+- zero asset address rejected,
+- invalid BPS rejected,
+- admin role benar,
+- non-admin privileged call rejected,
+- mock token mint dan approve bekerja dalam fixture.
+
+## Definition of Done
+
+`compile`, unit tests fase ini, dan static type checks berhasil. Deployment lokal menghasilkan contract address dan fixture dapat digunakan oleh seluruh test berikutnya.
+
+## Frontend Handoff
+
+Berikan chain config lokal, alamat mock token/contract lokal, dan ABI skeleton.
 
 ---
 
-# 41. Phase 3 — Smart Contract Testing
+# 41. Phase 3 — Identity, Risk, and System Configuration
 
-Target:
+## Goal
+
+Menyelesaikan authorization dan parameter yang menjadi dependency bagi seluruh flow berikutnya.
+
+## Implement
 
 ```text
-all core financial flows covered
-all failure scenarios covered
-all state transitions tested
+identityVerified mapping
+BorrowerProfile: riskScore, reputation, blockedAfterDefault
+setIdentityVerification
+setBorrowerRiskScore
+reserveBps and risk threshold
+distribution BPS setters
+parameter update events
+read functions for user status and active config
 ```
 
-No unresolved failing test sebelum lanjut.
+Semua setter harus memiliki access control, range validation, dan event. Perubahan parameter berlaku ke transaksi berikutnya serta tidak mengubah hak yang telah tercatat.
+
+## Tests
+
+- verified status dapat dipakai oleh address yang sama sebagai Saver dan Borrower,
+- non-admin setter rejected,
+- risk score di luar 0–100 rejected,
+- distribution BPS yang totalnya bukan 10.000 rejected,
+- setiap perubahan menghasilkan event dan read result terbaru.
+
+## Definition of Done
+
+Seluruh konfigurasi dapat dibaca, diperbarui secara aman, dan tidak ada financial transfer dalam fase ini.
+
+## Frontend Handoff
+
+Berikan fungsi status user/config, event perubahan, custom error, dan nilai parameter awal.
 
 ---
 
-# 42. Phase 4 — Security Pass
+# 42. Phase 4 — Deposit, Shares, and Pool Accounting
 
-Actions:
+## Goal
+
+Membangun sumber kebenaran untuk pokok Saver dan kapasitas dana pool sebelum fitur lending dibuat.
+
+## Implement
 
 ```text
-manual contract review
-run Slither
-review access control
-review external calls
-review state transitions
-review financial invariants
+deposit
+share minting
+totalShares
+Saver principal claim view
+liquidPoolAssets accounting
+liquidityReserveTarget
+availableLending view
+Saver default weight initialization
+weightedShares and totalWeightedShares updates
+setSaverWeight with 5.000–20.000 BPS bounds
+pool statistics read functions
 ```
 
-Tidak menambah fitur baru pada fase ini kecuali dibutuhkan untuk memperbaiki vulnerability.
+Deposit harus menghitung share berdasarkan nilai pokok per share saat ini. Deposit setelah kerugian tidak boleh memperoleh hak atas nilai lama. Transfer token aktual dan accounting internal harus tetap cocok.
+
+## Tests
+
+- unverified user deposit rejected,
+- zero deposit rejected,
+- first deposit dan multiple Saver deposit,
+- share proporsi untuk deposit berbeda,
+- reserve target dan available lending benar,
+- default Saver weight diinisialisasi 1×,
+- perubahan Saver weight memperbarui user weighted shares dan total global,
+- Saver weight di luar 5.000–20.000 BPS rejected,
+- fee-on-transfer atau unsupported token behavior rejected,
+- direct token transfer tidak menciptakan Saver claim,
+- rounding tidak menghasilkan posisi bernilai nol untuk deposit yang diterima.
+
+## Invariants Introduced
+
+```text
+total user shares == totalShares
+reported principal claims follow share value
+availableLending never exceeds lendable liquid assets
+locked stake is not part of pool assets
+```
+
+## Definition of Done
+
+Deposit dan seluruh pool read function lolos unit test serta regression test fase sebelumnya. Belum ada withdrawal atau lending.
+
+## Frontend Handoff
+
+Kirim ABI untuk `deposit`, approval requirement, Saver position, pool stats, event deposit, dan custom error terkait.
 
 ---
 
-# 43. Phase 5 — Frontend Mock UI
+# 43. Phase 5 — Saver Withdrawal
 
-Build UI menggunakan mock data.
+## Goal
 
-Pages:
+Membuktikan bahwa Saver dapat menarik pokok dengan pembukuan yang benar sebelum dana pool mulai dipinjamkan.
+
+## Implement
 
 ```text
-Dashboard
-Saver
-Borrower
-Loan Detail
+withdraw principal by asset amount
+share burn
+liquidity check
+immediate transfer or full revert
 ```
 
-Tujuan:
+Tidak ada withdrawal queue atau pending withdrawal. Return claim belum diimplementasikan pada fase ini karena margin dan reward index baru dibuat pada Phase 8.
 
-memastikan UX dapat dibangun tanpa tergantung blockchain integration.
+## Tests
+
+- partial dan full withdrawal,
+- withdrawal melebihi klaim rejected,
+- insufficient liquidity reverts tanpa perubahan state,
+- double withdrawal rejected,
+- share, weighted share, dan pool stats konsisten setelah withdrawal,
+- checks-effects-interactions dan reentrancy protection efektif.
+
+## Definition of Done
+
+Deposit → partial withdraw → full withdraw berhasil tanpa selisih token atau accounting. Tidak ada state pending setelah revert.
+
+## Frontend Handoff
+
+Berikan estimasi withdrawable principal, fungsi withdrawal, error insufficient liquidity, dan event withdrawal.
 
 ---
 
-# 44. Phase 6 — Wallet Integration
+# 44. Phase 6 — Stake and Borrower Eligibility
 
-Implement:
+## Goal
+
+Memisahkan dana stake dari pool dan memastikan semua syarat borrower dapat diuji sebelum loan creation.
+
+## Implement
 
 ```text
-MetaMask connect
-wallet state
-BOT Chain detection
-network switch
-wallet address display
+stake free balance
+withdraw unused stake
+stake allocation helpers
+minimum stake rule
+identity, risk, reputation, and blocked checks
+loan amount and duration validation
+eligibility preview/read function
 ```
 
-Tidak melakukan seluruh contract integration sekaligus.
+Stake harus masuk ke pembukuan terpisah. Deposit Saver pada wallet yang sama tidak otomatis menjadi stake. Stake yang telah dialokasikan tidak dapat ditarik atau dipakai ulang.
+
+## Tests
+
+- stake dan unstake bebas,
+- zero stake rejected,
+- stake tidak menaikkan available lending,
+- unverified/low-risk/blocked borrower tidak eligible,
+- insufficient stake rejected,
+- wallet yang sama dapat memiliki deposit dan stake terpisah,
+- allocated stake tidak dapat ditarik atau dialokasikan dua kali.
+
+## Definition of Done
+
+Semua eligibility rule memiliki hasil deterministic melalui view function dan helper internal. Belum ada dana loan yang dicairkan.
+
+## Frontend Handoff
+
+Berikan stake balance, required stake, eligibility result/reason, fungsi stake/unstake, event, dan error.
 
 ---
 
-# 45. Phase 7 — Contract Integration
+# 45. Phase 7 — Loan Creation and Disbursement
 
-Integrasikan satu per satu.
+## Goal
 
-Sequence:
+Membuat loan aktif secara atomik setelah seluruh prasyarat terpenuhi.
 
-```text
-1. Read pool stats
-2. Deposit
-3. Read saver position
-4. Withdrawal
-5. Read borrower profile
-6. Stake
-7. Loan request
-8. Read loan state
-9. Repayment
-10. Distribution state
-```
-
-Setiap satu integration:
+## Implement
 
 ```text
-implement
-test
-fix
-commit
+requestLoan
+loan ID generation
+stake allocation per loan
+Loan struct creation
+dueDate calculation
+principalOutstanding
+one-active-loan guard
+available lending check
+single disbursement transfer
+loan read functions
 ```
 
-baru lanjut.
+Validasi, state update, stake allocation, dan transfer harus terjadi dalam satu transaksi. Jika transfer gagal, seluruh perubahan revert.
+
+## Tests
+
+- eligible request succeeds,
+- setiap eligibility failure rejected,
+- insufficient available lending rejected,
+- principal, due date, stake, dan status tercatat benar,
+- disbursement hanya sekali,
+- second active loan rejected,
+- pool accounting turun sesuai principal,
+- reserve target dan loss reserve tidak ikut dicairkan,
+- reentrancy pada disbursement tidak dapat mengulang loan.
+
+## Definition of Done
+
+Deposit → stake → request loan → disbursement dapat dijalankan pada local chain, dengan seluruh invariants tetap benar.
+
+## Frontend Handoff
+
+Kirim ABI loan request/read, bentuk Loan, status enum, event disbursement, dan contoh loan ID.
 
 ---
 
-# 46. Phase 8 — Verification Layer
+# 46. Phase 8 — Repayment, Completion, and Return Distribution
 
-Untuk MVP, verification dapat menggunakan trusted/admin workflow.
+## Goal
 
-Example:
+Menutup happy path loan dan membagikan margin tanpa iterasi seluruh Saver.
+
+## Implement
 
 ```text
-User identity mock verified
-      ↓
-Admin / Verification Service
-      ↓
-setBorrowerVerification()
-      ↓
-Contract
+partial repayment
+principal-first allocation
+margin recognition
+Saver/platform/loss-reserve distribution
+accumulated return per weighted share
+reward debt settlement
+claimReturn
+dynamic distribution BPS
+dynamic Saver weight update
+loan completion
+stake unlock
+successful-payment reputation update
 ```
 
-Production-grade Know Your Customer tidak diperlukan.
+Saat bobot Saver berubah, settle return lama pada bobot sebelumnya sebelum mengganti weighted shares. Perubahan BPS dan bobot hanya memengaruhi margin sesudah transaksi konfigurasi.
+
+## Tests
+
+- partial repayment mempertahankan status Active,
+- pokok dilunasi sebelum margin diakui,
+- overpayment ditangani sesuai interface final,
+- full repayment menghasilkan Completed dan stake unlock,
+- 80/15/5 awal tepat termasuk rounding,
+- deposit yang masuk di antara dua repayment tidak mendapat return pertama,
+- bobot 0,5×/1×/2× menghasilkan pembagian yang benar,
+- perubahan bobot menyelesaikan return lama dan hanya memengaruhi return berikutnya,
+- perubahan BPS hanya memengaruhi margin berikutnya,
+- return claim tidak mengurangi pokok Saver,
+- claim tidak dapat dilakukan dua kali,
+- tidak ada loop seluruh Saver.
+
+## Definition of Done
+
+Happy path penuh dari deposit hingga claim return lulus. Saldo token aktual sama dengan seluruh kewajiban dan aset yang dicatat setelah toleransi rounding yang terdokumentasi.
+
+## Frontend Handoff
+
+Kirim fungsi repayment/claim, view breakdown pokok dan margin, return allocation aktif, Saver weight, status Completed, dan event terkait.
 
 ---
 
-# 47. Phase 9 — Full End-to-End Test
+# 47. Phase 9 — Default and Loss Accounting
 
-Complete scenario:
+## Goal
+
+Menangani loan macet tanpa membuat saldo semu atau membayar kompensasi dua kali.
+
+## Implement
 
 ```text
-Saver A deposit
-Saver B deposit
-      ↓
-Pool created
-      ↓
-Reserve allocated
-      ↓
-Borrower verified
-      ↓
-Borrower stakes
-      ↓
-Loan requested
-      ↓
-Loan disbursed
-      ↓
-Partial repayment
-      ↓
-Final repayment
-      ↓
-Loan completed
-      ↓
-Stake unlocked
-      ↓
-Return distributed
+permissionless markDefault
+due date + fixed 7-day grace check
+stake slashing up to principalOutstanding
+surplus stake return
+lossReserveAmount consumption
+Saver principal value-per-share haircut
+active principal cleanup
+20-point reputation penalty, minimum zero
+blockedAfterDefault
+terminal Defaulted state
 ```
 
-Semua UI dan contract state harus sinkron.
+`markDefault` harus atomik dan hanya dapat berhasil sekali. Cadangan likuiditas dari deposit Saver tidak boleh dihitung sebagai cadangan kerugian terpisah.
+
+## Tests
+
+- default sebelum akhir grace period rejected,
+- late repayment sebelum `markDefault` tetap diterima,
+- caller mana pun dapat menandai default yang eligible,
+- second default/slash rejected,
+- stake menutup kerugian lebih dahulu dan surplus dikembalikan,
+- loss reserve menutup tahap kedua,
+- sisa kerugian menurunkan klaim Saver secara proporsional,
+- Saver baru setelah loss memperoleh share pada harga terbaru,
+- reputasi tidak underflow dan borrower diblokir,
+- repayment setelah Defaulted rejected,
+- withdrawal setelah default menggunakan nilai klaim terbaru,
+- zero-principal-share state memiliki guard yang ditetapkan PRD.
+
+## Definition of Done
+
+Skenario default penuh lulus dan persamaan solvabilitas tetap benar setelah haircut. Tidak ada klaim pokok atau return yang melebihi aset yang benar-benar tersedia.
+
+## Frontend Handoff
+
+Berikan timestamp eligibility default, loss breakdown, status Defaulted, nilai Saver setelah haircut, event waterfall, dan error waktu/status.
 
 ---
 
-# 48. Phase 10 — BOT Chain Deployment
+# 48. Phase 10 — Full-System Tests and Security Pass
 
-Checklist:
+## Goal
+
+Menguji interaksi antarmodul dan mengunci behavior sebelum deployment publik.
+
+## Required Test Suites
 
 ```text
-contracts compile
-tests pass
-Slither reviewed
-deployment wallet ready
-BOT Chain configured
-contract deployed
-contract address recorded
-explorer verification checked if available
+unit tests from every phase
+complete happy path
+complete default path
+multiple Saver with unequal deposits and weights
+deposit and withdrawal between repayments
+parameter changes between repayments
+rounding and minimum amount boundaries
+access-control abuse
+reentrancy attempts
+double execution
+pause behavior if implemented
+invariant/fuzz tests for accounting
+```
+
+## Security Work
+
+1. Run Slither and triage every finding.
+2. Review all external calls and token transfer assumptions.
+3. Review authorization for every privileged function.
+4. Review checks-effects-interactions and nonReentrant coverage.
+5. Review share inflation/donation and rounding attacks.
+6. Review insolvency and zero-value edge cases.
+7. Confirm no unbounded loop depends on user count.
+
+## Exit Gate
+
+- Full test suite passes repeatedly from a clean install.
+- Tidak ada high-severity finding yang belum diselesaikan.
+- Medium finding memiliki fix atau alasan penerimaan yang terdokumentasi.
+- Gas estimate untuk fungsi utama dicatat.
+- ABI dinyatakan `release candidate` dan dibekukan kecuali ada security fix.
+
+## Frontend Handoff
+
+Kirim release-candidate ABI, final event/error table, demo accounts, dan local integration fixture.
+
+---
+
+# 49. Phase 11 — BOT Chain Testnet Deployment
+
+## Goal
+
+Menerapkan build yang telah diaudit ke BOT Chain dan memastikan behavior sama dengan local tests.
+
+## Deployment Steps
+
+```text
+verify deployer testnet balance
+load RPC, chain ID, and deployer key from environment
+compile from clean checkout
+run full tests and Slither gate
+deploy asset/mock asset if required
+deploy LoanchPool with recorded constructor args
+configure initial admin parameters
+record transaction hashes and addresses
+verify source on explorer if supported
+run deployment smoke tests
+```
+
+## Smoke Tests
+
+- contract reads berhasil,
+- admin configuration sesuai,
+- test user verification,
+- small deposit dan withdrawal,
+- small stake, loan, dan repayment dengan demo fixture,
+- event dapat dibaca dari explorer atau RPC.
+
+Jangan menjalankan default path di contract demo utama bila membutuhkan manipulasi waktu. Gunakan deployment khusus demo atau duration/grace configuration yang memang dirancang sebelum deployment; jangan menambah admin bypass tersembunyi.
+
+## Definition of Done
+
+Deployment dapat direproduksi, address dan constructor args terdokumentasi, smoke tests lulus, dan artifact cocok dengan source commit.
+
+## Frontend Handoff
+
+Kirim:
+
+```text
+BOT Chain RPC URL
+chain ID
+asset address
+LoanchPool address
+deployment block
+final ABI
+explorer links
+tested demo transaction sequence
 ```
 
 ---
 
-# 49. Phase 11 — Production Frontend
+# 50. Phase 12 — Integration and Submission Validation
 
-Tasks:
+Fase ini memvalidasi hasil gabungan bersama frontend milik rekan. Tim smart contract tidak mengambil alih implementasi frontend.
+
+## Contract-Side Tasks
+
+1. Membantu memetakan error revert ke pesan UI melalui dokumentasi.
+2. Memastikan setiap read/write yang digunakan frontend tersedia pada ABI final.
+3. Memeriksa transaction sequence pada aplikasi terhadap aturan kontrak.
+4. Memperbaiki contract hanya jika ditemukan bug, lalu mengulang Phase 10 dan redeploy bila bytecode berubah.
+5. Menyediakan seed/demo script yang reproducible.
+
+## Submission Checklist
 
 ```text
-set production contract address
-set BOT Chain network config
-build frontend
-deploy frontend
-test live environment
+[ ] Solidity source and exact commit documented
+[ ] all tests pass
+[ ] security review documented
+[ ] BOT Chain contract address and transaction recorded
+[ ] final ABI shared with frontend
+[ ] environment variable names documented
+[ ] deposit, withdrawal, stake, loan, repayment, and claim tested
+[ ] default behavior demonstrated through tests or dedicated demo deployment
+[ ] frontend reads correct values from deployed contract
+[ ] frontend handles custom errors and transaction states
+[ ] README and demo flow complete
 ```
 
 ---
 
-# 50. Phase 12 — Submission Verification
+# 51. Codex Execution Protocol
 
-Checklist:
-
-```text
-[ ] Solidity source available
-[ ] Contract deployed to BOT Chain
-[ ] Contract address documented
-[ ] Frontend connected to deployed contract
-[ ] Wallet connection works
-[ ] BOT Chain detection works
-[ ] Deposit works
-[ ] Loan flow works
-[ ] Repayment works
-[ ] Public frontend URL works
-[ ] Repository accessible
-[ ] README complete
-[ ] Deployment information documented
-[ ] Demo scenario tested
-```
-
----
-
-# 51. Suggested Codex Workflow
-
-Codex tidak diberikan task seperti:
+Gunakan satu prompt per fase. Format dasar:
 
 ```text
-"Build the entire Loanch application."
+Read Loanch.md, PRD.md, AGENTS.md, and the current repository.
+
+Implement Phase <N> only: <phase name>.
+
+Before coding:
+- inspect existing implementation and tests,
+- identify files and invariants affected,
+- do not reimplement behavior that already passes the phase requirements.
+
+During implementation:
+- stay inside the phase scope,
+- do not build frontend code,
+- add meaningful tests for this phase,
+- preserve all behavior from completed phases.
+
+Before finishing:
+- run compile,
+- run the new tests,
+- run the full regression suite,
+- review the diff for accounting and access-control issues,
+- update ABI/interface documentation if the public contract changed.
+
+Report:
+- files changed,
+- behavior implemented,
+- test commands and results,
+- frontend handoff changes,
+- risks or blockers for the next phase.
+
+Stop after Phase <N>. Do not start the next phase.
 ```
 
-Gunakan incremental prompt.
-
-Example:
-
-```text
-Read Loanch.md and PRD.md.
-
-Implement only the deposit and pool accounting
-logic in Solidity.
-
-Do not implement lending yet.
-
-Add tests for:
-- successful deposit
-- zero deposit
-- multiple savers
-- reserve calculation
-
-Run all tests before finishing.
-```
-
-Kemudian:
-
-```text
-Read Loanch.md and PRD.md.
-
-Implement loan request and eligibility checking.
-
-Do not modify deposit behavior.
-
-Update tests and run the complete suite.
-```
-
-Pattern:
-
-```text
-Read Context
-     ↓
-Implement Small Scope
-     ↓
-Run
-     ↓
-Test
-     ↓
-Review Diff
-     ↓
-Fix
-     ↓
-Commit
-```
+Setelah satu fase selesai, review hasilnya sebelum memberikan prompt fase berikutnya. Urutan fase hanya boleh dilewati jika seluruh dependency fase tersebut memang sudah tersedia dan telah diuji.
 
 ---
 
 # 52. Recommended MCP Setup
 
-High priority:
+High priority untuk smart contract track:
 
 ```text
 GitHub MCP
 Context7 MCP
 OpenZeppelin Contracts MCP
-Playwright MCP
 ```
 
-Optional:
+Digunakan oleh rekan frontend atau pada Phase 12:
+
+```text
+Playwright MCP
+Chrome DevTools MCP
+```
+
+Optional jika verification menggunakan service off-chain:
 
 ```text
 Supabase MCP
-Chrome DevTools MCP
 ```
 
 Responsibilities:
@@ -2054,8 +2256,7 @@ code review context
 
 ```text
 latest library documentation
-wagmi
-viem
+ethers.js
 Hardhat
 React
 OpenZeppelin
@@ -2130,7 +2331,9 @@ disbursement works
 repayment works
 loan completion works
 stake unlock works
-distribution works
+default waterfall and reputation penalty work
+withdraw reverts when liquidity is insufficient
+distribution and dynamic BPS update work
 ```
 
 ### Frontend
@@ -2173,63 +2376,9 @@ demo flow documented
 
 ---
 
-# 55. Final Technical Architecture
+# 55. Architecture Reference
 
-```text
-                        LOANCH
-                           │
-                           ▼
-                React + TypeScript + Vite
-                           │
-                      Tailwind CSS
-                           │
-                           ▼
-                     wagmi + viem
-                           │
-                           ▼
-                        MetaMask
-                           │
-                           ▼
-                       BOT Chain
-                           │
-                           ▼
-                    Solidity Contracts
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-          ▼                ▼                ▼
-       Saver            Lending          Staking
-          │                │                │
-          └────────┬───────┴────────┬───────┘
-                   │                │
-                   ▼                ▼
-               Loan Pool        Repayment
-                   │                │
-                   ▼                ▼
-                Reserve        Distribution
-                                    │
-                         ┌──────────┼──────────┐
-                         ▼          ▼          ▼
-                       Saver     Platform    Reserve
-
-
-Optional Off-Chain Layer
-─────────────────────────────────────────────
-
-Identity / Risk Service
-          │
-          ▼
-Node.js + TypeScript
-          │
-          ▼
-Supabase
-          │
-          ▼
-Verified Result / Risk Score
-          │
-          ▼
-Loanch Smart Contract
-```
+Satu diagram arsitektur terdapat di Section 6. Tanggung jawab data dijelaskan di Section 7, sedangkan kontrak dan aturan pembukuan ada di Section 8–18. Perbarui bagian tersebut ketika implementasi berubah.
 
 ---
 
@@ -2242,7 +2391,7 @@ Frontend
 React + TypeScript + Vite + Tailwind
 
 Web3
-wagmi + viem + MetaMask
+ethers.js + MetaMask
 
 Smart Contract
 Solidity + OpenZeppelin

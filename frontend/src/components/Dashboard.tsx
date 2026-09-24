@@ -4,6 +4,7 @@ import { Badge } from "./Badge"
 import { WalletStatus, NetworkGuard } from "./WalletComponents"
 import { EmptyState, PiggyBankIcon, DocumentIcon } from "./EmptyState"
 import { useWallet } from "../hooks/useWallet"
+import type { Page } from "../types"
 
 // Mock data for demonstration - clearly labeled as demo
 const mockDashboardData = {
@@ -40,8 +41,6 @@ const mockDashboardData = {
     { id: 3, type: "return_distribution", amount: "32.50", date: "2024-02-01", status: "confirmed" }
   ]
 }
-
-type Page = "landing" | "dashboard" | "saver" | "borrower"
 
 interface DashboardProps {
   onNavigate: (page: Page) => void
@@ -178,7 +177,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   description="Start saving to earn returns on the Loanch platform"
                   action={{
                     label: "Deposit Now",
-                    onClick: () => console.log("Navigate to deposit")
+                    onClick: () => onNavigate("saver")
                   }}
                 />
               )}
@@ -233,9 +232,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-slate-700">
-                        <Button fullWidth size="small">
-                          Make Payment
+                      <div className="pt-4 border-t border-slate-700 flex gap-2">
+                        <Button fullWidth size="small" onClick={() => onNavigate("loans")}>
+                          Manage & Repay
+                        </Button>
+                        <Button fullWidth size="small" variant="secondary" onClick={() => onNavigate("loans")}>
+                          View Lifecycle
                         </Button>
                       </div>
                     </div>
@@ -248,7 +250,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   description="Request a loan to get started with borrowing"
                   action={{
                     label: "Request Loan",
-                    onClick: () => console.log("Navigate to loan request")
+                    onClick: () => onNavigate("borrower")
                   }}
                 />
               )}
@@ -257,7 +259,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
           {/* Pool Health */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-slate-100 mb-4">Pool Health</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-slate-100">Pool Health</h2>
+              <Button variant="secondary" size="small" onClick={() => onNavigate("pool")}>
+                Explore Pool Transparency →
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <Card>
                 <CardContent>
@@ -333,6 +340,51 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
                       </svg>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Links to Reputation & Blockchain Transparency */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <Card className="border-purple-500/20 bg-slate-900/80">
+                <CardContent>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-purple-400 font-semibold mb-1">
+                        Financial Reputation
+                      </div>
+                      <div className="text-base font-bold text-slate-100">
+                        Tier 2 · Established Borrower
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1">
+                        100% On-time track record · 5% collateral discount active
+                      </p>
+                    </div>
+                    <Button variant="secondary" size="small" onClick={() => onNavigate("reputation")}>
+                      View Profile
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-slate-800 bg-slate-900/80">
+                <CardContent>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-emerald-400 font-semibold mb-1">
+                        Blockchain Transparency
+                      </div>
+                      <div className="text-base font-bold text-slate-100">
+                        BOT Chain Network
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Testnet ID: 968 · Mainnet ID: 677 · Verified Solvency Invariants
+                      </p>
+                    </div>
+                    <Button variant="secondary" size="small" onClick={() => onNavigate("transparency")}>
+                      Inspect Details
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

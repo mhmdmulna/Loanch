@@ -5,8 +5,7 @@ import { Input } from "../components/Input"
 import { Badge, CheckIcon, ExclamationIcon, XIcon } from "../components/Badge"
 import { NetworkGuard } from "../components/WalletComponents"
 import { TransactionStatus } from "../components/TransactionStatus"
-// import { useWallet } from "../hooks/useWallet"
-import type { TransactionState } from "../types"
+import type { Page, TransactionState } from "../types"
 
 // Mock eligibility data - clearly labeled as demo
 const mockEligibility = {
@@ -23,8 +22,6 @@ const mockPoolData = {
   minStakePercentage: 5,
   interestRate: 12
 }
-
-type Page = "landing" | "dashboard" | "saver" | "borrower"
 
 interface BorrowerPageProps {
   onNavigate: (page: Page) => void
@@ -124,8 +121,8 @@ export function BorrowerPage({ onNavigate }: BorrowerPageProps) {
                   <p className="text-slate-400 mb-4">
                     The smart contract has processed your loan request. Your funds will be disbursed shortly.
                   </p>
-                  <Button onClick={() => setShowSuccess(false)}>
-                    View Active Loan
+                  <Button onClick={() => onNavigate("loans")}>
+                    View Active Loan & Lifecycle
                   </Button>
                 </div>
               </CardContent>
@@ -168,8 +165,10 @@ export function BorrowerPage({ onNavigate }: BorrowerPageProps) {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-700">
-                    <Button fullWidth>Make Payment</Button>
+                  <div className="pt-4 border-t border-slate-700 flex gap-2">
+                    <Button fullWidth onClick={() => onNavigate("loans")}>
+                      Manage Loan & Pay
+                    </Button>
                   </div>
                 </div>
               </CardContent>
