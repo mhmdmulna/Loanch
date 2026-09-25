@@ -1,10 +1,23 @@
-import { type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { useLenis } from './hooks/useLenis'
 import { motion, useReducedMotion } from 'motion/react'
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronRight, CircleDollarSign, Database, GitBranch, Layers3, LockKeyhole, ShieldCheck, Wallet } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Check, ChevronRight, CircleDollarSign, Database, GitBranch, Layers3, LockKeyhole, ShieldCheck, Wallet } from 'lucide-react'
 import FaultyTerminal from './components/FaultyTerminal/FaultyTerminal'
 import { Navbar } from './components/Navbar/Navbar'
+import { TextAnimate } from './components/magicui/text-animate'
+import { ShinyButton } from './components/magicui/shiny-button'
 import AppExperience from './app/AppExperience'
+
+const HERO_WORDS = [
+  'Lend',
+  'Borrow',
+  'Grow',
+  'Fund',
+  'Invest',
+  'Earn',
+  'Build',
+  'Finance',
+]
 
 const steps = [
   { number: '01', title: 'Savers deposit', description: 'Funds enter a shared lending pool.', icon: Wallet },
@@ -21,7 +34,7 @@ const benefits = [
 
 function FooterBrand() {
   return <a className="brand brand--inverse" href="#top" aria-label="Loanch, back to top">
-    <span className="brand-mark" aria-hidden="true"><span /><span /><span /></span>
+    <img src="/primary.svg" alt="" width={26} height={24} className="brand-logo" />
     <span>loanch<span className="brand-period">.</span></span>
   </a>
 }
@@ -34,12 +47,21 @@ const appHref = '/app'
 
 function PrimaryLink({ children, className = '' }: { children: ReactNode; className?: string }) {
   const reduceMotion = useReducedMotion()
-  return <motion.a className={`button button--primary ${className}`} href={appHref} whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.18 }}>{children}<ArrowUpRight size={18} strokeWidth={2} aria-hidden="true" /></motion.a>
+  return <ShinyButton className={`button button--primary ${className}`} href={appHref} whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.18 }}>{children}<ArrowUpRight size={18} strokeWidth={2} aria-hidden="true" /></ShinyButton>
 }
 
 function LandingPage() {
   useLenis()
   const reduceMotion = useReducedMotion()
+  const [wordIndex, setWordIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % HERO_WORDS.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [])
+
   return <div className="site-shell" id="top">
     <Navbar />
 
@@ -68,21 +90,38 @@ function LandingPage() {
           />
         </div>
         <div className="hero-grid container">
-        <div className="hero-content"><Entrance>
-          <h1 id="hero-title">Save together.<br /><span>Lend with clarity.</span></h1>
-          <p className="hero-description">Deposits fund a shared pool. Borrower repayments generate returns, with key activity recorded on-chain.</p>
-          <div className="hero-actions"><PrimaryLink>Launch App</PrimaryLink><a className="button button--text" href="#how-it-works">How it works <ArrowRight size={18} aria-hidden="true" /></a></div>
-        </Entrance></div>
-        <Entrance className="hero-visual" delay={0.1}><div className="flow-diagram" role="img" aria-label="Savers deposit into a shared pool. The pool funds borrowers, repayments return to the pool, and returns are distributed to savers.">
-          <div className="diagram-grid" aria-hidden="true" />
-          <div className="diagram-node diagram-node--saver"><span className="diagram-icon"><Wallet size={22} strokeWidth={1.8} /></span><span><small>01 / DEPOSIT</small><strong>Savers</strong></span><ArrowDownRight size={18} className="node-arrow" /></div>
-          <div className="diagram-connector diagram-connector--top" aria-hidden="true"><span /></div>
-          <div className="diagram-pool"><div className="pool-topline"><span>THE SHARED POOL</span><span className="pool-live"><span /> ON-CHAIN</span></div><div className="pool-symbol" aria-hidden="true"><span className="pool-symbol-inner"><Layers3 size={31} strokeWidth={1.5} /></span></div><strong>Funds managed by rules</strong><p>Smart contracts coordinate allocation, repayment, and distribution.</p><div className="pool-bottomline"><span><Check size={14} /> Verifiable activity</span><ArrowUpRight size={17} /></div></div>
-          <div className="diagram-bottom-flow" aria-hidden="true"><span /><span /></div>
-          <div className="diagram-bottom-nodes"><div className="diagram-node diagram-node--small"><span className="diagram-icon"><ArrowUpRight size={20} strokeWidth={1.8} /></span><span><small>02 / ALLOCATE</small><strong>Borrowers</strong></span></div><div className="diagram-node diagram-node--small"><span className="diagram-icon"><ArrowDownRight size={20} strokeWidth={1.8} /></span><span><small>03 / REPAY</small><strong>Returns</strong></span></div></div>
-          <div className="diagram-corner diagram-corner--one" aria-hidden="true" /><div className="diagram-corner diagram-corner--two" aria-hidden="true" />
-        </div></Entrance>
-      </div></section>
+          <div className="hero-content"><Entrance>
+            <h1 id="hero-title">
+              Save together.
+              <br />
+              <span className="whitespace-nowrap">
+                <span className="inline-block relative">
+                  <TextAnimate
+                    animation="slideUp"
+                    by="word"
+                    as="span"
+                    className="inline-block"
+                    startOnView={false}
+                  >
+                    {HERO_WORDS[wordIndex]}
+                  </TextAnimate>
+                </span>{' '}
+                with clarity.
+              </span>
+            </h1>
+            <p className="hero-description">Deposits fund a shared pool. Borrower repayments generate returns, with key activity recorded on-chain.</p>
+            <div className="hero-actions"><PrimaryLink>Launch App</PrimaryLink></div>
+          </Entrance></div>
+          <Entrance className="hero-visual" delay={0.1}><div className="flow-diagram" role="img" aria-label="Savers deposit into a shared pool. The pool funds borrowers, repayments return to the pool, and returns are distributed to savers.">
+            <div className="diagram-grid" aria-hidden="true" />
+            <div className="diagram-node diagram-node--saver"><span className="diagram-icon"><Wallet size={22} strokeWidth={1.8} /></span><span><small>01 / DEPOSIT</small><strong>Savers</strong></span><ArrowDownRight size={18} className="node-arrow" /></div>
+            <div className="diagram-connector diagram-connector--top" aria-hidden="true"><span /></div>
+            <div className="diagram-pool"><div className="pool-topline"><span>THE SHARED POOL</span><span className="pool-live"><span /> ON-CHAIN</span></div><div className="pool-symbol" aria-hidden="true"><span className="pool-symbol-inner"><Layers3 size={31} strokeWidth={1.5} /></span></div><strong>Funds managed by rules</strong><p>Smart contracts coordinate allocation, repayment, and distribution.</p><div className="pool-bottomline"><span><Check size={14} /> Verifiable activity</span><ArrowUpRight size={17} /></div></div>
+            <div className="diagram-bottom-flow" aria-hidden="true"><span /><span /></div>
+            <div className="diagram-bottom-nodes"><div className="diagram-node diagram-node--small"><span className="diagram-icon"><ArrowUpRight size={20} strokeWidth={1.8} /></span><span><small>02 / ALLOCATE</small><strong>Borrowers</strong></span></div><div className="diagram-node diagram-node--small"><span className="diagram-icon"><ArrowDownRight size={20} strokeWidth={1.8} /></span><span><small>03 / REPAY</small><strong>Returns</strong></span></div></div>
+            <div className="diagram-corner diagram-corner--one" aria-hidden="true" /><div className="diagram-corner diagram-corner--two" aria-hidden="true" />
+          </div></Entrance>
+        </div></section>
 
       <section className="section process-section" id="how-it-works" aria-labelledby="process-title"><div className="container">
         <Entrance className="section-heading process-heading"><div><h2 id="process-title">A simple flow.<br />Clear at every step.</h2></div><p>From deposit to distribution, the pool follows predefined rules.</p></Entrance>

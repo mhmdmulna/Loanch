@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { ArrowUpRight, Menu, X } from 'lucide-react'
+import { ShinyButton } from '../magicui/shiny-button'
 
 const appHref = '/app'
 
@@ -13,9 +14,7 @@ const navLinks = [
 
 function BrandMark() {
   return (
-    <span className="nb-brand-mark" aria-hidden="true">
-      <span /><span /><span />
-    </span>
+    <img src="/primary.svg" alt="" width={24} height={22} className="nb-brand-logo" />
   )
 }
 
@@ -61,7 +60,7 @@ export function Navbar() {
           </nav>
 
           {/* Desktop CTA */}
-          <motion.a
+          <ShinyButton
             href={appHref}
             className="nb-cta"
             initial={reduceMotion ? false : { opacity: 0, x: 14 }}
@@ -73,7 +72,7 @@ export function Navbar() {
           >
             Launch App
             <ArrowUpRight size={15} strokeWidth={2.2} aria-hidden="true" />
-          </motion.a>
+          </ShinyButton>
 
           {/* Mobile toggle */}
           <motion.button
@@ -132,7 +131,7 @@ export function Navbar() {
                 </motion.a>
               ))}
 
-              <motion.a
+              <ShinyButton
                 href={appHref}
                 className="nb-mobile-cta"
                 onClick={close}
@@ -143,7 +142,7 @@ export function Navbar() {
               >
                 Launch App
                 <ArrowUpRight size={17} aria-hidden="true" />
-              </motion.a>
+              </ShinyButton>
             </nav>
           </motion.div>
         )}

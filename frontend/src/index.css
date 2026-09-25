@@ -23,7 +23,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   background: #071524;
 }
 
@@ -32,6 +31,7 @@ body {
   min-width: 320px;
   background: #071524;
   color: #e2e8f0;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 button,
@@ -133,6 +133,7 @@ button {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(49, 208, 163, 0.2);
+  border-radius: 9999px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   width: 100%;
   max-width: 780px;
@@ -159,40 +160,13 @@ button {
   color: var(--emerald);
 }
 
-.nb-brand-mark {
-  position: relative;
+.nb-brand-logo,
+.brand-logo {
   display: block;
-  width: 20px;
-  height: 22px;
-  transform: rotate(-13deg);
+  height: 24px;
+  width: auto;
   flex: none;
-}
-
-.nb-brand-mark span {
-  position: absolute;
-  background: var(--emerald);
-  border-radius: 2px;
-}
-
-.nb-brand-mark span:nth-child(1) {
-  width: 6px;
-  height: 20px;
-  left: 1px;
-  top: 0;
-}
-
-.nb-brand-mark span:nth-child(2) {
-  width: 6px;
-  height: 14px;
-  left: 9px;
-  top: 6px;
-}
-
-.nb-brand-mark span:nth-child(3) {
-  width: 15px;
-  height: 6px;
-  left: 2px;
-  bottom: 1px;
+  object-fit: contain;
 }
 
 .nb-nav {
@@ -346,9 +320,9 @@ button {
   min-height: 100vh;
   min-height: 100svh;
   display: grid;
-  grid-template-columns: 1.03fr .97fr;
+  grid-template-columns: 1.14fr .86fr;
   align-items: center;
-  gap: 58px;
+  gap: 48px;
   padding-top: 110px;
   padding-bottom: 68px;
 }
@@ -397,7 +371,7 @@ p {
 }
 
 .hero h1 {
-  max-width: 670px;
+  max-width: 780px;
   font-size: clamp(48px, 5.4vw, 76px);
   line-height: 1.08;
   letter-spacing: -.065em;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import {
-  ArrowDownLeft, ArrowRight, ArrowUpRight, Check, ChevronRight,
-  Copy, ExternalLink, FileText, Landmark, Menu, Network, ShieldCheck, Wallet, X,
+  ArrowDownLeft, ArrowRight, ArrowUpRight, Check,
+  Copy, ExternalLink, FileText, Landmark, PiggyBank, Receipt, ShieldCheck, Wallet,
 } from 'lucide-react'
 import { LOANCH_CONTRACT_ADDRESS } from '../contracts/addresses'
 import { botChainConfig } from '../contracts/config'
@@ -16,12 +16,10 @@ type TransactionStage = 'idle' | 'awaiting-wallet' | 'submitted' | 'confirming' 
 type FormKind = Exclude<ActionKind, 'claim'>
 
 const nav = [
-  { href: '/app', label: 'App Entry' },
-  { href: '/app/save', label: 'Save' },
-  { href: '/app/borrow', label: 'Borrow' },
-  { href: '/app/activity', label: 'Activity' },
-  { href: '/app/transparency', label: 'Transparency' },
-  { href: '/app/settings', label: 'Settings' },
+  { href: '/app/save', label: 'Save', icon: PiggyBank },
+  { href: '/app/borrow', label: 'Borrow', icon: Landmark },
+  { href: '/app/activity', label: 'Activity', icon: Receipt },
+  { href: '/app/transparency', label: 'Transparency', icon: FileText },
 ]
 
 const transactionLabels: Record<TransactionStage, string> = {
@@ -49,19 +47,20 @@ function useAppPath() {
   return { path, navigate }
 }
 
-function AppLink({ href, navigate, children, className = '', current }: {
+function AppLink({ href, navigate, children, className = '', current, title }: {
   href: string
   navigate: (href: string) => void
   children: ReactNode
   className?: string
   current?: boolean
+  title?: string
 }) {
   const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
     navigate(href)
   }
-  return <a href={href} className={className} aria-current={current ? 'page' : undefined} onClick={onClick}>{children}</a>
+  return <a href={href} className={className} title={title} aria-current={current ? 'page' : undefined} onClick={onClick}>{children}</a>
 }
 
 function ActionLink({ href, navigate, children, secondary = false }: {
@@ -620,23 +619,53 @@ function AppExperience() {
     <a className="la-skip" href="#app-main">Skip to content</a>
     <div className="la-shell">
       <aside className={`la-sidebar ${mobileOpen ? 'la-sidebar--open' : ''}`} aria-label="App navigation">
-        <a className="la-logo" href="/" aria-label="Loanch home"><span className="la-logo-mark" aria-hidden="true"><span /><span /><span /></span>loanch<span>.</span></a>
-        <nav aria-label="App pages">
-          {nav.map(item => <AppLink key={item.href} href={item.href} navigate={navigateAndClose} current={activeNav === item.href} className="la-nav-link">{item.label}<ChevronRight size={16} aria-hidden="true" /></AppLink>)}
-        </nav>
-        <div className="la-sidebar-foot"><ShieldCheck size={18} aria-hidden="true" /><span>Financial activity requires on-chain verification.</span></div>
-      </aside>
-      <div className="la-main-column">
-        <header className="la-topbar">
-          <button className="la-menu-button" type="button" aria-label={mobileOpen ? 'Close app menu' : 'Open app menu'} aria-expanded={mobileOpen} onClick={() => setMobileOpen(value => !value)}>{mobileOpen ? <X size={22} /> : <Menu size={22} />}</button>
-          <span className="la-topbar-title"><Landmark size={18} aria-hidden="true" /> Loanch app</span>
-          <AppLink href="/app/settings" navigate={navigateAndClose} className="la-topbar-wallet">
-            <span className={`la-status-dot la-status-dot--${wallet.status}`} aria-hidden="true" />
-            <span>{wallet.address ? shortAddress(wallet.address) : wallet.status === 'connecting' ? 'Connecting' : 'Connect wallet'}</span>
+        <div className="la-sidebar-header">
+          <AppLink href="/app" navigate={navigateAndClose} className="la-logo" title="Loanch app">
+            <img src="/primary.svg" alt="Loanch logo" width={32} height={30} className="la-logo-img" />
           </AppLink>
-        </header>
+        </div>
+        
+        <nav className="la-sidebar-nav" aria-label="App pages">
+          {nav.map(item => {
+            const Icon = item.icon
+            const isCurrent = activeNav === item.href
+            return (
+              <AppLink
+                key={item.href}
+                href={item.href}
+                navigate={navigateAndClose}
+                current={isCurrent}
+                className={`la-nav-item ${isCurrent ? 'la-nav-item--active' : ''}`}
+                title={item.label}
+              >
+                <div className="la-nav-icon">
+                  <Icon size={20} aria-hidden="true" />
+                </div>
+                <span className="la-nav-tooltip">{item.label}</span>
+              </AppLink>
+            )
+          })}
+        </nav>
+
+        <div className="la-sidebar-footer">
+          <AppLink
+            href="/app/settings"
+            navigate={navigateAndClose}
+            current={activeNav === '/app/settings'}
+            className="la-nav-item la-avatar-item"
+            title="Account Settings"
+          >
+            <div className="la-avatar-wrap">
+              <span className={`la-status-dot la-status-dot--${wallet.status}`} aria-hidden="true" />
+              <ShieldCheck size={18} className="la-avatar-icon" />
+            </div>
+            <span className="la-nav-tooltip">{wallet.address ? shortAddress(wallet.address) : 'Wallet'}</span>
+          </AppLink>
+        </div>
+      </aside>
+
+      <div className="la-main-column">
         <main className="la-main" id="app-main"><AppContent path={path} wallet={wallet} pool={pool} navigate={navigateAndClose} /></main>
-        <footer className="la-footer"><span>Loanch · Loan, Chain, Launch</span><span><Network size={15} aria-hidden="true" /> {wallet.status === 'connected' ? 'Network verified' : 'Network not verified'}</span></footer>
       </div>
     </div>
   </div>
