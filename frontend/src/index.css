@@ -365,6 +365,59 @@ button {
   z-index: 1;
 }
 
+.hero-network {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 10px;
+  margin: 0 0 27px;
+  color: #8ce6d0;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.hero-network-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(140, 230, 208, .55);
+  border-radius: 50%;
+}
+
+.hero-network-mark::before,
+.hero-network-mark span {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--mint);
+  content: '';
+}
+
+.hero-network-mark span {
+  position: absolute;
+  transform: translate(5px, -5px);
+  opacity: .65;
+}
+
+.hero-network-name { font-weight: 800; }
+
+.hero-network-divider {
+  width: 24px;
+  height: 1px;
+  background: rgba(140, 230, 208, .42);
+}
+
+.hero-network-detail {
+  color: #779799;
+  font-size: 10px;
+  letter-spacing: .16em;
+}
+
 .eyebrow {
   display: flex;
   align-items: center;

@@ -94,9 +94,11 @@ function LandingPage() {
         </div>
         <div className="hero-grid container">
           <div className="hero-content"><Entrance>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 mb-4 rounded-full border border-[rgba(49,208,163,0.3)] bg-[rgba(49,208,163,0.08)] backdrop-blur-xs text-[11px] font-semibold tracking-wider text-[#31D0A3] uppercase">
-              <ShieldCheck size={13} strokeWidth={2} className="text-[#31D0A3]" />
-              Built for BOT Chain
+            <div className="hero-network" aria-label="BOT Chain mainnet">
+              <span className="hero-network-mark" aria-hidden="true"><span /></span>
+              <span className="hero-network-name">BOT Chain</span>
+              <span className="hero-network-divider" aria-hidden="true" />
+              <span className="hero-network-detail">native network</span>
             </div>
             <h1 id="hero-title">
               Save together.
