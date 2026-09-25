@@ -85,30 +85,11 @@ button {
   top: 12px;
 }
 
-/* ── Continuous Section Gradient Border ───────────────────────────── */
+/* ── Continuous Section Transitions (No hard borders/lines) ───────── */
 .hero,
 .section,
 .final-cta {
   position: relative;
-}
-
-.hero::after,
-.section::after,
-.final-cta::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(49, 208, 163, 0.15) 15%,
-      rgba(49, 208, 163, 0.5) 50%,
-      rgba(49, 208, 163, 0.15) 85%,
-      transparent 100%);
-  pointer-events: none;
-  z-index: 10;
 }
 
 /* ── Floating pill Navbar ───────────────────────────── */
@@ -306,6 +287,18 @@ button {
   background: linear-gradient(90deg, rgba(7, 21, 36, 0.9) 0%, rgba(7, 21, 36, 0.7) 43%, rgba(7, 21, 36, 0.25) 100%);
   z-index: -1;
   pointer-events: none;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 280px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.3) 35%, rgba(0, 0, 0, 0.85) 75%, #000000 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .hero-beams {
@@ -728,7 +721,12 @@ p {
   padding: 105px 0;
   display: flex;
   align-items: center;
-  background: #071524;
+  background: #000000;
+}
+
+/* Process Section (directly below Hero) */
+.process-section {
+  background: #000000;
 }
 
 .section>.container {
@@ -819,7 +817,7 @@ p {
 
 /* Benefits Section */
 .benefits-section {
-  background: rgba(10, 28, 46, 0.6);
+  background: #000000;
 }
 
 .benefits-layout {
@@ -869,8 +867,8 @@ p {
   padding: 24px 25px;
   border: 1px solid transparent;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(15, 36, 56, 0.95), rgba(9, 25, 41, 0.85)) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.3), rgba(49, 208, 163, 0.05)) border-box;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #0d0e12, #07080a) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.25), rgba(49, 208, 163, 0.05)) border-box;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 .benefit-icon {
@@ -900,7 +898,7 @@ p {
 
 /* Roles Section */
 .roles-section {
-  background: #061e22;
+  background: #000000;
   color: #fff;
 }
 
@@ -930,11 +928,11 @@ p {
 }
 
 .role-card--saver {
-  background: linear-gradient(145deg, #0a504b, #073834) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.4), rgba(49, 208, 163, 0.1)) border-box;
+  background: linear-gradient(145deg, #0b1a18, #050d0c) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.35), rgba(49, 208, 163, 0.08)) border-box;
 }
 
 .role-card--borrower {
-  background: linear-gradient(145deg, #123b43, #0b272d) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.35), rgba(49, 208, 163, 0.08)) border-box;
+  background: linear-gradient(145deg, #0d1618, #060b0c) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.3), rgba(49, 208, 163, 0.06)) border-box;
 }
 
 .role-card:after {
@@ -1013,9 +1011,9 @@ p {
   flex: none;
 }
 
-/* Transparency Section */
+/* Transparency Section (directly above pre-footer CTA) */
 .transparency-section {
-  background: #071524;
+  background: linear-gradient(180deg, #000000 0%, #000000 calc(100% - 480px), rgba(10, 99, 87, 0.35) calc(100% - 260px), rgba(10, 99, 87, 0.8) calc(100% - 120px), #0a6357 100%);
 }
 
 .transparency-layout {
@@ -1053,9 +1051,9 @@ p {
 
 .ledger {
   border: 1px solid transparent;
-  background: linear-gradient(150deg, rgba(15, 36, 56, 0.95), rgba(7, 21, 36, 0.9)) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.35), rgba(49, 208, 163, 0.08)) border-box;
+  background: linear-gradient(150deg, #0e0e12, #070709) padding-box, linear-gradient(135deg, rgba(49, 208, 163, 0.3), rgba(49, 208, 163, 0.06)) border-box;
   border-radius: 15px;
-  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
@@ -1064,7 +1062,7 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  background: rgba(7, 21, 36, 0.85);
+  background: #050507;
   padding: 17px 21px;
   border-bottom: 1px solid rgba(49, 208, 163, 0.16);
   color: #fff;
@@ -1185,27 +1183,14 @@ p {
 }
 
 .site-footer {
-  background: #050e18;
-  color: #c2d1d1;
+  background: #0a6357;
+  color: #d0eee6;
   padding-top: 58px;
   position: relative;
 }
 
 .site-footer::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(49, 208, 163, 0.15) 15%,
-      rgba(49, 208, 163, 0.5) 50%,
-      rgba(49, 208, 163, 0.15) 85%,
-      transparent 100%);
-  pointer-events: none;
-  min-height: 50svh;
+  display: none;
 }
 
 .footer-main {

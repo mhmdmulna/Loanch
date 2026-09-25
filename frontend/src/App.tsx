@@ -6,6 +6,7 @@ import FaultyTerminal from './components/FaultyTerminal/FaultyTerminal'
 import { Navbar } from './components/Navbar/Navbar'
 import { TextAnimate } from './components/magicui/text-animate'
 import { ShinyButton } from './components/magicui/shiny-button'
+import { HoloCard } from './components/ui/holo-card'
 import AppExperience from './app/AppExperience'
 
 const HERO_WORDS = [
@@ -112,15 +113,36 @@ function LandingPage() {
             <p className="hero-description">Deposits fund a shared pool. Borrower repayments generate returns, with key activity recorded on-chain.</p>
             <div className="hero-actions"><PrimaryLink>Launch App</PrimaryLink></div>
           </Entrance></div>
-          <Entrance className="hero-visual" delay={0.1}><div className="flow-diagram" role="img" aria-label="Savers deposit into a shared pool. The pool funds borrowers, repayments return to the pool, and returns are distributed to savers.">
-            <div className="diagram-grid" aria-hidden="true" />
-            <div className="diagram-node diagram-node--saver"><span className="diagram-icon"><Wallet size={22} strokeWidth={1.8} /></span><span><small>01 / DEPOSIT</small><strong>Savers</strong></span><ArrowDownRight size={18} className="node-arrow" /></div>
-            <div className="diagram-connector diagram-connector--top" aria-hidden="true"><span /></div>
-            <div className="diagram-pool"><div className="pool-topline"><span>THE SHARED POOL</span><span className="pool-live"><span /> ON-CHAIN</span></div><div className="pool-symbol" aria-hidden="true"><span className="pool-symbol-inner"><Layers3 size={31} strokeWidth={1.5} /></span></div><strong>Funds managed by rules</strong><p>Smart contracts coordinate allocation, repayment, and distribution.</p><div className="pool-bottomline"><span><Check size={14} /> Verifiable activity</span><ArrowUpRight size={17} /></div></div>
-            <div className="diagram-bottom-flow" aria-hidden="true"><span /><span /></div>
-            <div className="diagram-bottom-nodes"><div className="diagram-node diagram-node--small"><span className="diagram-icon"><ArrowUpRight size={20} strokeWidth={1.8} /></span><span><small>02 / ALLOCATE</small><strong>Borrowers</strong></span></div><div className="diagram-node diagram-node--small"><span className="diagram-icon"><ArrowDownRight size={20} strokeWidth={1.8} /></span><span><small>03 / REPAY</small><strong>Returns</strong></span></div></div>
-            <div className="diagram-corner diagram-corner--one" aria-hidden="true" /><div className="diagram-corner diagram-corner--two" aria-hidden="true" />
-          </div></Entrance>
+          <Entrance className="hero-visual" delay={0.1}>
+            <div className="flex w-full items-center justify-center p-2">
+              <div data-theme="dark" className="w-[440px] max-w-full">
+                <HoloCard maxTilt={16} aspect={1.586} label="Loanch Shared Liquidity Pool">
+                  <div className="flex items-start justify-between">
+                    <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#31d0a3]">
+                      LOANCH
+                    </span>
+                    <span className="rounded-full border border-[rgba(49,208,163,0.3)] bg-[rgba(49,208,163,0.12)] px-2.5 py-0.5 text-[10px] font-bold text-[#8ce6d0]">
+                      ON-CHAIN POOL
+                    </span>
+                  </div>
+
+                  <div className="my-2">
+                    <p className="text-2xl font-bold tracking-tight text-white">
+                      Shared Liquidity
+                    </p>
+                    <p className="mt-1 text-sm text-[#b4c7cb]">
+                      Deposits fund borrowers. Repayments return yield, recorded transparently.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-[#94a3b8]">
+                    <span className="font-mono font-semibold tracking-widest text-[#31d0a3]">POOL #0001</span>
+                    <span>Verifiable Rules</span>
+                  </div>
+                </HoloCard>
+              </div>
+            </div>
+          </Entrance>
         </div></section>
 
       <section className="section process-section" id="how-it-works" aria-labelledby="process-title"><div className="container">
@@ -152,7 +174,7 @@ function LandingPage() {
       <section className="final-cta" aria-labelledby="cta-title"><div className="container final-cta-inner"><Entrance><h2 id="cta-title">Lending you can follow.</h2><p>Save, borrow, and verify the flow.</p></Entrance><PrimaryLink className="button--light">Launch App</PrimaryLink></div></section>
     </main>
 
-    <footer className="site-footer"><div className="container footer-main"><div><FooterBrand /><p>Save. Borrow. Verify.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#for-you">For you</a><a href="#transparency">Transparency</a></nav><div className="footer-project-links"><a href="https://github.com/zaidunk/Loanch" target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch/blob/main/Loanch.md" target="_blank" rel="noreferrer">Project overview <ArrowUpRight size={15} aria-hidden="true" /></a></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loanch</span><span>Loan · Chain · Launch</span></div></footer>
+    <footer className="site-footer"><div className="container footer-main"><div><FooterBrand /></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#for-you">For you</a><a href="#transparency">Transparency</a></nav><div className="footer-project-links"><a href="https://github.com/zaidunk/Loanch" target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch/blob/main/Loanch.md" target="_blank" rel="noreferrer">Project overview <ArrowUpRight size={15} aria-hidden="true" /></a></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loanch</span><span>Loan · Chain · Launch</span></div></footer>
   </div>
 }
 

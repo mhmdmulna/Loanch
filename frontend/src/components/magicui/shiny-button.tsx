@@ -15,7 +15,7 @@ const shinyTransition = {
 }
 
 export interface ShinyButtonProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof MotionProps>,
     MotionProps {
   children: React.ReactNode
   className?: string

@@ -256,8 +256,29 @@ export default function FaultyTerminal({
   const timeOffsetRef = useRef(Math.random() * 100);
 
   const tintVec = useMemo(() => hexToRgb(tint), [tint]);
-
   const ditherValue = useMemo(() => (typeof dither === 'boolean' ? (dither ? 1 : 0) : dither), [dither]);
+
+  const propsRef = useRef({});
+  propsRef.current = {
+    scale,
+    gridMul,
+    digitSize,
+    timeScale,
+    pause,
+    scanlineIntensity,
+    glitchAmount,
+    flickerAmount,
+    noiseAmp,
+    chromaticAberration,
+    ditherValue,
+    curvature,
+    tintVec,
+    mouseReact,
+    mouseStrength,
+    pageLoadAnimation,
+    brightness,
+    lightMode
+  };
 
   const handleMouseMove = useCallback(e => {
     const ctn = containerRef.current;
@@ -346,26 +367,28 @@ export default function FaultyTerminal({
 
       if (!isIntersecting || !isTabVisible) return;
 
-      if (pageLoadAnimation && loadAnimationStartRef.current === 0) {
+      const pProps = propsRef.current;
+
+      if (pProps.pageLoadAnimation && loadAnimationStartRef.current === 0) {
         loadAnimationStartRef.current = t;
       }
 
-      if (!pause) {
-        const elapsed = (t * 0.001 + timeOffsetRef.current) * timeScale;
+      if (!pProps.pause) {
+        const elapsed = (t * 0.001 + timeOffsetRef.current) * pProps.timeScale;
         program.uniforms.iTime.value = elapsed;
         frozenTimeRef.current = elapsed;
       } else {
         program.uniforms.iTime.value = frozenTimeRef.current;
       }
 
-      if (pageLoadAnimation && loadAnimationStartRef.current > 0) {
+      if (pProps.pageLoadAnimation && loadAnimationStartRef.current > 0) {
         const animationDuration = 2000;
         const animationElapsed = t - loadAnimationStartRef.current;
         const progress = Math.min(animationElapsed / animationDuration, 1);
         program.uniforms.uPageLoadProgress.value = progress;
       }
 
-      if (mouseReact) {
+      if (pProps.mouseReact) {
         const dampingFactor = 0.08;
         const smoothMouse = smoothMouseRef.current;
         const mouse = mouseRef.current;
@@ -382,25 +405,54 @@ export default function FaultyTerminal({
     rafRef.current = requestAnimationFrame(update);
     ctn.appendChild(gl.canvas);
 
-    if (mouseReact) ctn.addEventListener('mousemove', handleMouseMove);
+    ctn.addEventListener('mousemove', handleMouseMove);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (mouseReact) ctn.removeEventListener('mousemove', handleMouseMove);
+      ctn.removeEventListener('mousemove', handleMouseMove);
       if (gl.canvas.parentElement === ctn) ctn.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       loadAnimationStartRef.current = 0;
-      timeOffsetRef.current = Math.random() * 100;
     };
+  }, [dpr]);
+
+  useEffect(() => {
+    const program = programRef.current;
+    if (!program) return;
+
+    program.uniforms.uScale.value = scale;
+    if (program.uniforms.uGridMul.value) {
+      program.uniforms.uGridMul.value[0] = gridMul[0];
+      program.uniforms.uGridMul.value[1] = gridMul[1];
+    }
+    program.uniforms.uDigitSize.value = digitSize;
+    program.uniforms.uScanlineIntensity.value = scanlineIntensity;
+    program.uniforms.uGlitchAmount.value = glitchAmount;
+    program.uniforms.uFlickerAmount.value = flickerAmount;
+    program.uniforms.uNoiseAmp.value = noiseAmp;
+    program.uniforms.uChromaticAberration.value = chromaticAberration;
+    program.uniforms.uDither.value = ditherValue;
+    program.uniforms.uCurvature.value = curvature;
+    if (program.uniforms.uTint.value) {
+      program.uniforms.uTint.value.set(tintVec[0], tintVec[1], tintVec[2]);
+    }
+    program.uniforms.uMouseStrength.value = mouseStrength;
+    program.uniforms.uUseMouse.value = mouseReact ? 1 : 0;
+    program.uniforms.uPageLoadProgress.value = pageLoadAnimation ? 0 : 1;
+    program.uniforms.uUsePageLoadAnimation.value = pageLoadAnimation ? 1 : 0;
+    program.uniforms.uBrightness.value = brightness;
+    program.uniforms.uLightMode.value = lightMode ? 1 : 0;
+
+    if (rendererRef.current?.gl) {
+      rendererRef.current.gl.clearColor(lightMode ? 1 : 0, lightMode ? 1 : 0, lightMode ? 1 : 0, 1);
+    }
   }, [
-    dpr,
-    pause,
-    timeScale,
     scale,
-    gridMul,
+    gridMul[0],
+    gridMul[1],
     digitSize,
     scanlineIntensity,
     glitchAmount,
@@ -409,13 +461,14 @@ export default function FaultyTerminal({
     chromaticAberration,
     ditherValue,
     curvature,
-    tintVec,
+    tintVec[0],
+    tintVec[1],
+    tintVec[2],
     mouseReact,
     mouseStrength,
     pageLoadAnimation,
     brightness,
-    lightMode,
-    handleMouseMove
+    lightMode
   ]);
 
   return <div ref={containerRef} className={`faulty-terminal-container ${className}`} style={style} {...rest} />;
