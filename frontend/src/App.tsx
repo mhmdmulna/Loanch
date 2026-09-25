@@ -93,6 +93,10 @@ function LandingPage() {
         </div>
         <div className="hero-grid container">
           <div className="hero-content"><Entrance>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 mb-4 rounded-full border border-[rgba(49,208,163,0.3)] bg-[rgba(49,208,163,0.08)] backdrop-blur-xs text-[11px] font-semibold tracking-wider text-[#31D0A3] uppercase">
+              <ShieldCheck size={13} strokeWidth={2} className="text-[#31D0A3]" />
+              Built for BOT Chain
+            </div>
             <h1 id="hero-title">
               Save together.
               <br />
@@ -121,9 +125,12 @@ function LandingPage() {
                   <div className="flex flex-col justify-between h-full font-['Plus_Jakarta_Sans']">
                     {/* Top Row: Brand & Card Type */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-extrabold tracking-[0.2em] text-white">
-                        LOANCH
-                      </span>
+                      <div className="flex items-center gap-2.5">
+                        <img src="/primary.svg" alt="Loanch Logo" className="h-7 w-auto object-contain" />
+                        <span className="text-sm font-extrabold tracking-[0.2em] text-white">
+                          LOANCH
+                        </span>
+                      </div>
                       <span className="text-[11px] font-semibold tracking-wider text-slate-300">
                         Saver Access Card
                       </span>
@@ -148,7 +155,7 @@ function LandingPage() {
                         </span>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <img src="/bot-logo.svg" alt="BOT Logo" className="h-5 w-auto object-contain" />
+                        <img src="/bot-logo.svg" alt="BOT Logo" className="h-7 w-auto object-contain" />
                         <span className="font-bold tracking-widest text-[#10A37F]">
                           BOT CHAIN
                         </span>
@@ -190,7 +197,7 @@ function LandingPage() {
       <section className="final-cta" aria-labelledby="cta-title"><div className="container final-cta-inner"><Entrance><h2 id="cta-title">Lending you can follow.</h2><p>Save, borrow, and verify the flow.</p></Entrance><PrimaryLink className="button--light">Launch App</PrimaryLink></div></section>
     </main>
 
-    <footer className="site-footer"><div className="container footer-main"><div><FooterBrand /></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#for-you">For you</a><a href="#transparency">Transparency</a></nav><div className="footer-project-links"><a href="https://github.com/zaidunk/Loanch" target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch/blob/main/Loanch.md" target="_blank" rel="noreferrer">Project overview <ArrowUpRight size={15} aria-hidden="true" /></a></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loanch</span><span>Loan · Chain · Launch</span></div></footer>
+    <footer className="site-footer"><div className="container footer-main"><div><FooterBrand /></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#for-you">For you</a><a href="#transparency">Transparency</a></nav><div className="footer-project-links"><a href="https://botchain.ai/" target="_blank" rel="noreferrer">BOT Chain <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://scan.botchain.ai/" target="_blank" rel="noreferrer">BOT Explorer <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch" target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={15} aria-hidden="true" /></a><a href="https://github.com/zaidunk/Loanch/blob/main/Loanch.md" target="_blank" rel="noreferrer">Project overview <ArrowUpRight size={15} aria-hidden="true" /></a></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loanch</span><span>Loan · Chain · Launch</span></div></footer>
   </div>
 }
 
