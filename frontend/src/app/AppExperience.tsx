@@ -318,25 +318,39 @@ function SaveDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Pool;
     <AccessNote wallet={wallet} />
     <PoolNotice pool={pool} />
     <div className="la-dashboard-grid">
-      <div className="la-feature-panel">
-        <h2>Your savings</h2><p>Amounts are read from the configured pool contract.</p>
-        <div className="la-figure">{data?.saver ? amountText(data.saver.principalClaim, data) : '—'}</div>
-        <DataLine label="Principal claim" value={amountText(data?.saver?.principalClaim, data)} />
-        <DataLine label="Claimable return" value={amountText(data?.saver?.claimableReturn, data)} />
-        <DataLine label="Withdrawable now" value={amountText(data?.withdrawable, data)} />
-        <DataLine label="Wallet balance" value={amountText(data?.walletBalance, data)} />
-        {data?.saver && data.saver.claimableReturn > 0n && <PoolActionButton kind="claim" wallet={wallet} pool={pool} />}
-      </div>
-      <div className="la-side-panel">
-        <h2>Next action</h2><p>Review the amount and confirm the pool transaction in MetaMask.</p>
-        <div className="la-stack-actions">
-          <ActionLink href="/app/save/deposit" navigate={navigate}>Prepare deposit</ActionLink>
-          <ActionLink href="/app/save/withdraw" navigate={navigate} secondary>Prepare withdrawal</ActionLink>
+      <SpotlightCard spotlightColor="rgba(49, 208, 163, 0.28)" className="la-feature-panel-spotlight">
+        <div className="la-feature-panel la-feature-panel--save">
+          <h2>Your savings</h2><p>Amounts are read from the configured pool contract.</p>
+          <div className="la-figure">{data?.saver ? amountText(data.saver.principalClaim, data) : '—'}</div>
+          <DataLine label="Principal claim" value={amountText(data?.saver?.principalClaim, data)} />
+          <DataLine label="Claimable return" value={amountText(data?.saver?.claimableReturn, data)} />
+          <DataLine label="Withdrawable now" value={amountText(data?.withdrawable, data)} />
+          <DataLine label="Wallet balance" value={amountText(data?.walletBalance, data)} />
+          {data?.saver && data.saver.claimableReturn > 0n && <PoolActionButton kind="claim" wallet={wallet} pool={pool} />}
         </div>
-      </div>
+      </SpotlightCard>
+      <SpotlightCard spotlightColor="rgba(15, 167, 143, 0.25)" className="la-side-panel-spotlight">
+        <div className="la-side-panel la-side-panel--save">
+          <h2>Next action</h2><p>Review the amount and confirm the pool transaction in MetaMask.</p>
+          <div className="la-stack-actions">
+            <ActionLink href="/app/save/deposit" navigate={navigate}>Prepare deposit</ActionLink>
+            <ActionLink href="/app/save/withdraw" navigate={navigate} secondary>Prepare withdrawal</ActionLink>
+          </div>
+        </div>
+      </SpotlightCard>
     </div>
     <Section title="Pool context" description="Values read from the configured pool contract.">
-      <div className="la-metric-grid"><Metric label="Pool liquidity" value={amountText(data?.stats.liquidPoolAssets, data)} /><Metric label="Your pool share" value={data?.saver && data.stats.totalShares > 0n ? `${(Number(data.saver.shares * 10000n / data.stats.totalShares) / 100).toFixed(2)}%` : 'Unavailable'} /><Metric label="Saver weight" value={data?.saver ? `${Number(data.saver.weightBps || 10000n) / 10000}×` : 'Unavailable'} /></div>
+      <div className="la-metric-grid">
+        <SpotlightCard spotlightColor="rgba(49, 208, 163, 0.22)" className="la-metric-spotlight">
+          <Metric label="Pool liquidity" value={amountText(data?.stats.liquidPoolAssets, data)} />
+        </SpotlightCard>
+        <SpotlightCard spotlightColor="rgba(49, 208, 163, 0.22)" className="la-metric-spotlight">
+          <Metric label="Your pool share" value={data?.saver && data.stats.totalShares > 0n ? `${(Number(data.saver.shares * 10000n / data.stats.totalShares) / 100).toFixed(2)}%` : 'Unavailable'} />
+        </SpotlightCard>
+        <SpotlightCard spotlightColor="rgba(49, 208, 163, 0.22)" className="la-metric-spotlight">
+          <Metric label="Saver weight" value={data?.saver ? `${Number(data.saver.weightBps || 10000n) / 10000}×` : 'Unavailable'} />
+        </SpotlightCard>
+      </div>
     </Section>
   </>
 }
@@ -353,26 +367,32 @@ function BorrowDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Poo
     <AccessNote wallet={wallet} />
     <PoolNotice pool={pool} />
     <div className="la-dashboard-grid">
-      <div className="la-feature-panel">
-        <h2>Your borrowing</h2><p>Active position read from the pool contract.</p>
-        <div className="la-figure">{data ? amountText(loan ? loan.totalRepayment - loan.amountPaid : 0n, data) : '—'}</div>
-        <DataLine label="Active loan" value={loan ? `#${loan.id}` : data ? 'None' : 'Unavailable'} />
-        <DataLine label="Amount repaid" value={amountText(loan?.amountPaid ?? (data ? 0n : null), data)} />
-        <DataLine label="Allocated stake" value={amountText(data?.allocatedStake, data)} />
-        <DataLine label="Free stake" value={amountText(data?.freeStake, data)} />
-      </div>
-      <div className="la-side-panel">
-        <h2>Before you request</h2>
-        <p>Risk, reputation, free stake, loan limit, and liquidity are checked on-chain before a request.</p>
-        <ActionLink href="/app/borrow/request" navigate={navigate}>Review requirements</ActionLink>
-      </div>
+      <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.28)" className="la-feature-panel-spotlight">
+        <div className="la-feature-panel la-feature-panel--borrow">
+          <h2>Your borrowing</h2><p>Active position read from the pool contract.</p>
+          <div className="la-figure">{data ? amountText(loan ? loan.totalRepayment - loan.amountPaid : 0n, data) : '—'}</div>
+          <DataLine label="Active loan" value={loan ? `#${loan.id}` : data ? 'None' : 'Unavailable'} />
+          <DataLine label="Amount repaid" value={amountText(loan?.amountPaid ?? (data ? 0n : null), data)} />
+          <DataLine label="Allocated stake" value={amountText(data?.allocatedStake, data)} />
+          <DataLine label="Free stake" value={amountText(data?.freeStake, data)} />
+        </div>
+      </SpotlightCard>
+      <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.22)" className="la-side-panel-spotlight">
+        <div className="la-side-panel la-side-panel--borrow">
+          <h2>Before you request</h2>
+          <p>Risk, reputation, free stake, loan limit, and liquidity are checked on-chain before a request.</p>
+          <ActionLink href="/app/borrow/request" navigate={navigate}>Review requirements</ActionLink>
+        </div>
+      </SpotlightCard>
     </div>
     <Section title="Borrower position">
-      <div className="la-panel">
-        <DataLine label="Risk score" value={data?.borrower?.riskScore.toString() ?? 'Unavailable'} />
-        <DataLine label="Reputation" value={data?.borrower?.reputation.toString() ?? 'Unavailable'} />
-        {loan && <ActionLink href={`/app/borrow/loan/${loan.id}`} navigate={navigate}>View active loan</ActionLink>}
-      </div>
+      <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.22)" className="la-panel-spotlight">
+        <div className="la-panel la-panel--borrow">
+          <DataLine label="Risk score" value={data?.borrower?.riskScore.toString() ?? 'Unavailable'} />
+          <DataLine label="Reputation" value={data?.borrower?.reputation.toString() ?? 'Unavailable'} />
+          {loan && <ActionLink href={`/app/borrow/loan/${loan.id}`} navigate={navigate}>View active loan</ActionLink>}
+        </div>
+      </SpotlightCard>
     </Section>
   </>
 }
@@ -458,53 +478,57 @@ function FinancialForm({ kind, wallet, pool, navigate }: { kind: FormKind; walle
     <AccessNote wallet={wallet} />
     <PoolNotice pool={pool} />
     <div className="la-flow-grid">
-      <div className="la-form-panel">
-        <h2>{reviewing ? 'Review details' : 'Enter amount'}</h2>
-        {!reviewing ? <>
-          <label className="la-field" htmlFor="loanch-amount"><span>{details.label}</span><span className="la-input-wrap"><input
-            id="loanch-amount" type="text" inputMode="decimal" autoComplete="off" value={amount}
-            onChange={event => setAmount(event.target.value)} placeholder="0.00"
-            disabled={!data || wallet.status !== 'connected'} aria-describedby="loanch-amount-hint"
-            aria-invalid={Boolean(amount && amountError)}
-          /><span>{data?.assetSymbol ?? 'asset'}</span></span></label>
-          <p className="la-field-hint" id="loanch-amount-hint">Pool asset: {data?.assetSymbol ?? 'loading'} · {data?.decimals ?? '—'} decimals.</p>
-          {amountError && <p className="la-field-error" role="alert">{amountError}</p>}
-          {overLimit && <p className="la-field-error" role="alert">Amount exceeds the available limit.</p>}
-          {kind === 'request' && <label className="la-field" htmlFor="loanch-duration"><span>Duration in days</span><span className="la-input-wrap"><input id="loanch-duration" type="number" min="1" max="365" step="1" value={days} onChange={event => setDays(event.target.value)} /></span></label>}
-          {kind === 'request' && !durationValid && <p className="la-field-error" role="alert">Duration must be 1–365 days.</p>}
-          {kind === 'repay' && data && !data.activeLoan && <p className="la-field-error" role="alert">There is no active loan to repay.</p>}
-          <button className="la-button la-button--primary" type="button" disabled={!canReview} onClick={() => setReviewing(true)}>Review {kind}<ArrowRight size={17} aria-hidden="true" /></button>
-        </> : <>
-          <div className="la-review">
-            <DataLine label={details.preview} value={parsedAmount !== null ? amountText(parsedAmount, data) : 'Unavailable'} />
-            <DataLine label="From wallet" value={wallet.address ? shortAddress(wallet.address) : 'Unavailable'} />
-            <DataLine label="Pool contract" value={LOANCH_CONTRACT_ADDRESS || 'Unavailable'} />
-            <DataLine label="Network" value={expectedChainId?.toString() ?? 'Not configured'} />
-            {kind === 'request' && <DataLine label="Duration" value={days + ' days'} />}
-            {kind === 'request' && <DataLine label="Required stake" value={amountText(preview?.stakeRequired, data)} />}
-            {kind === 'request' && <DataLine label="Eligibility" value={preview ? eligibilityText(preview.reason) : previewError || 'Checking…'} />}
-            {kind === 'repay' && <DataLine label="Loan ID" value={data?.activeLoan?.id.toString() ?? 'No active loan'} />}
-          </div>
-          {requestBlocked && preview?.reason !== undefined && <Notice tone="warning">{eligibilityText(preview.reason)}. Resolve this before requesting.</Notice>}
-          {failure && <Notice tone="warning">{failure}</Notice>}
-          {progress.stage === 'confirmed' && <Notice tone="success">Confirmed on-chain. Account data is refreshing.</Notice>}
-          {progress.hash && <ActionLink href={'/app/transactions/' + progress.hash} navigate={navigate} secondary>View transaction</ActionLink>}
-          <div className="la-inline-actions"><button className="la-button la-button--secondary" type="button" disabled={busy} onClick={() => setReviewing(false)}>Edit amount</button><button className="la-button la-button--primary" type="button" disabled={!canConfirm} onClick={() => void submit()}>{busy ? 'Waiting…' : 'Confirm ' + kind}</button></div>
-        </>}
-      </div>
-      <div className="la-flow-aside">
-        <div className="la-requirements">
-          <h2>Live limits</h2>
-          <DataLine label="Wallet balance" value={amountText(data?.walletBalance, data)} />
-          {kind === 'withdraw' && <DataLine label="Withdrawable" value={amountText(data?.withdrawable, data)} />}
-          {(kind === 'stake' || kind === 'unstake' || kind === 'request') && <DataLine label="Free stake" value={amountText(data?.freeStake, data)} />}
-          {kind === 'repay' && <DataLine label="Remaining debt" value={amountText(data?.activeLoan ? data.activeLoan.totalRepayment - data.activeLoan.amountPaid : null, data)} />}
-          {kind === 'request' && <DataLine label="Available lending" value={amountText(data?.stats.availableLending, data)} />}
+      <SpotlightCard spotlightColor="rgba(49, 208, 163, 0.22)" className="la-form-panel-spotlight">
+        <div className="la-form-panel">
+          <h2>{reviewing ? 'Review details' : 'Enter amount'}</h2>
+          {!reviewing ? <>
+            <label className="la-field" htmlFor="loanch-amount"><span>{details.label}</span><span className="la-input-wrap"><input
+              id="loanch-amount" type="text" inputMode="decimal" autoComplete="off" value={amount}
+              onChange={event => setAmount(event.target.value)} placeholder="0.00"
+              disabled={!data || wallet.status !== 'connected'} aria-describedby="loanch-amount-hint"
+              aria-invalid={Boolean(amount && amountError)}
+            /><span>{data?.assetSymbol ?? 'asset'}</span></span></label>
+            <p className="la-field-hint" id="loanch-amount-hint">Pool asset: {data?.assetSymbol ?? 'loading'} · {data?.decimals ?? '—'} decimals.</p>
+            {amountError && <p className="la-field-error" role="alert">{amountError}</p>}
+            {overLimit && <p className="la-field-error" role="alert">Amount exceeds the available limit.</p>}
+            {kind === 'request' && <label className="la-field" htmlFor="loanch-duration"><span>Duration in days</span><span className="la-input-wrap"><input id="loanch-duration" type="number" min="1" max="365" step="1" value={days} onChange={event => setDays(event.target.value)} /></span></label>}
+            {kind === 'request' && !durationValid && <p className="la-field-error" role="alert">Duration must be 1–365 days.</p>}
+            {kind === 'repay' && data && !data.activeLoan && <p className="la-field-error" role="alert">There is no active loan to repay.</p>}
+            <button className="la-button la-button--primary" type="button" disabled={!canReview} onClick={() => setReviewing(true)}>Review {kind}<ArrowRight size={17} aria-hidden="true" /></button>
+          </> : <>
+            <div className="la-review">
+              <DataLine label={details.preview} value={parsedAmount !== null ? amountText(parsedAmount, data) : 'Unavailable'} />
+              <DataLine label="From wallet" value={wallet.address ? shortAddress(wallet.address) : 'Unavailable'} />
+              <DataLine label="Pool contract" value={LOANCH_CONTRACT_ADDRESS || 'Unavailable'} />
+              <DataLine label="Network" value={expectedChainId?.toString() ?? 'Not configured'} />
+              {kind === 'request' && <DataLine label="Duration" value={days + ' days'} />}
+              {kind === 'request' && <DataLine label="Required stake" value={amountText(preview?.stakeRequired, data)} />}
+              {kind === 'request' && <DataLine label="Eligibility" value={preview ? eligibilityText(preview.reason) : previewError || 'Checking…'} />}
+              {kind === 'repay' && <DataLine label="Loan ID" value={data?.activeLoan?.id.toString() ?? 'No active loan'} />}
+            </div>
+            {requestBlocked && preview?.reason !== undefined && <Notice tone="warning">{eligibilityText(preview.reason)}. Resolve this before requesting.</Notice>}
+            {failure && <Notice tone="warning">{failure}</Notice>}
+            {progress.stage === 'confirmed' && <Notice tone="success">Confirmed on-chain. Account data is refreshing.</Notice>}
+            {progress.hash && <ActionLink href={'/app/transactions/' + progress.hash} navigate={navigate} secondary>View transaction</ActionLink>}
+            <div className="la-inline-actions"><button className="la-button la-button--secondary" type="button" disabled={busy} onClick={() => setReviewing(false)}>Edit amount</button><button className="la-button la-button--primary" type="button" disabled={!canConfirm} onClick={() => void submit()}>{busy ? 'Waiting…' : 'Confirm ' + kind}</button></div>
+          </>}
         </div>
-        {kind === 'stake' && <ActionLink href="/app/borrow/unstake" navigate={navigate} secondary>Unstake free funds</ActionLink>}
-        {progress.stage !== 'idle' && <p role="status">{progress.label}</p>}
-        <TransactionStatusTracker stage={progress.stage} />
-      </div>
+      </SpotlightCard>
+      <SpotlightCard spotlightColor="rgba(15, 167, 143, 0.2)" className="la-flow-aside-spotlight">
+        <div className="la-flow-aside">
+          <div className="la-requirements">
+            <h2>Live limits</h2>
+            <DataLine label="Wallet balance" value={amountText(data?.walletBalance, data)} />
+            {kind === 'withdraw' && <DataLine label="Withdrawable" value={amountText(data?.withdrawable, data)} />}
+            {(kind === 'stake' || kind === 'unstake' || kind === 'request') && <DataLine label="Free stake" value={amountText(data?.freeStake, data)} />}
+            {kind === 'repay' && <DataLine label="Remaining debt" value={amountText(data?.activeLoan ? data.activeLoan.totalRepayment - data.activeLoan.amountPaid : null, data)} />}
+            {kind === 'request' && <DataLine label="Available lending" value={amountText(data?.stats.availableLending, data)} />}
+          </div>
+          {kind === 'stake' && <ActionLink href="/app/borrow/unstake" navigate={navigate} secondary>Unstake free funds</ActionLink>}
+          {progress.stage !== 'idle' && <p role="status">{progress.label}</p>}
+          <TransactionStatusTracker stage={progress.stage} />
+        </div>
+      </SpotlightCard>
     </div>
   </>
 }
@@ -528,15 +552,17 @@ function LoanDetail({ id, wallet, pool, navigate }: { id: string; wallet: Wallet
       <DataLine label="Requested loan ID" value={id} />
       {error && <Notice tone="warning">{error}</Notice>}
       {!loan && !error && <Notice>{/^[1-9]\d*$/.test(id) ? 'Loading loan record…' : 'Invalid loan ID.'}</Notice>}
-      {loan && <div className="la-panel">
-        <DataLine label="Borrower" value={loan.borrower} />
-        <DataLine label="Status" value={['None', 'Active', 'Completed', 'Defaulted'][Number(loan.status)] ?? 'Unknown'} />
-        <DataLine label="Principal" value={amountText(loan.principal, pool.data)} />
-        <DataLine label="Remaining debt" value={amountText(loan.totalRepayment - loan.amountPaid, pool.data)} />
-        <DataLine label="Amount paid" value={amountText(loan.amountPaid, pool.data)} />
-        <DataLine label="Due date" value={new Date(Number(loan.dueDate) * 1000).toLocaleString()} />
-        <DataLine label="Locked stake" value={amountText(loan.stakeAmount, pool.data)} />
-      </div>}
+      {loan && <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.22)" className="la-panel-spotlight">
+        <div className="la-panel la-panel--borrow">
+          <DataLine label="Borrower" value={loan.borrower} />
+          <DataLine label="Status" value={['None', 'Active', 'Completed', 'Defaulted'][Number(loan.status)] ?? 'Unknown'} />
+          <DataLine label="Principal" value={amountText(loan.principal, pool.data)} />
+          <DataLine label="Remaining debt" value={amountText(loan.totalRepayment - loan.amountPaid, pool.data)} />
+          <DataLine label="Amount paid" value={amountText(loan.amountPaid, pool.data)} />
+          <DataLine label="Due date" value={new Date(Number(loan.dueDate) * 1000).toLocaleString()} />
+          <DataLine label="Locked stake" value={amountText(loan.stakeAmount, pool.data)} />
+        </div>
+      </SpotlightCard>}
     </Section>
   </>
 }

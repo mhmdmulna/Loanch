@@ -1,16 +1,16 @@
 .loanch-app {
-  --la-bg: #071524;
-  --la-sidebar: #06121f;
-  --la-surface: #0b1d2a;
-  --la-raised: #0d2732;
-  --la-inset: #0a1c29;
-  --la-border: #28434c;
+  --la-bg: #000000;
+  --la-sidebar: #000000;
+  --la-surface: #0a0a0a;
+  --la-raised: #121212;
+  --la-inset: #050505;
+  --la-border: #1f242d;
   --la-text: #f5faf9;
   --la-secondary: #c1d1d4;
   --la-muted: #9bb0b5;
   --la-accent: #31d0a3;
   --la-accent-hover: #55dfb6;
-  --la-navy: #071524;
+  --la-navy: #000000;
   --la-emerald: #0fa78f;
   --la-mint: #31d0a3;
   --la-teal: #064e46;
@@ -60,7 +60,7 @@
 .la-skip { position: fixed; z-index: 100; top: -80px; left: 18px; padding: 12px 16px; background: #fff; color: #071524; border-radius: 8px; }
 .la-skip:focus { top: 12px; }
 .la-shell { position: relative; z-index: 1; display: grid; grid-template-columns: 80px minmax(0, 1fr); min-height: 100vh; min-height: 100svh; }
-.la-sidebar { position: sticky; top: 0; display: flex; flex-direction: column; align-items: center; align-self: start; min-height: 100vh; min-height: 100svh; padding: var(--la-space-5) 0; background: rgba(6, 18, 31, .96); border-right: 1px solid var(--la-border); z-index: 40; }
+.la-sidebar { position: sticky; top: 0; display: flex; flex-direction: column; align-items: center; align-self: start; min-height: 100vh; min-height: 100svh; padding: var(--la-space-5) 0; background: rgba(0, 0, 0, .96); border-right: 1px solid var(--la-border); z-index: 40; }
 .la-sidebar-header { display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 32px; }
 .la-logo { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--la-radius-md); background: rgba(49, 208, 163, 0.06); transition: background var(--la-fast) ease, transform var(--la-fast) ease; }
 .la-logo:hover { background: rgba(49, 208, 163, 0.14); transform: scale(1.05); }
@@ -75,9 +75,9 @@
 .la-nav-item--active:hover { background: rgba(49, 208, 163, 0.18); }
 
 /* Slim Sidebar Tooltip (Untitled UI style) */
-.la-nav-tooltip { position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); padding: 6px 12px; background: #0c1a26; color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; border-radius: 6px; border: 1px solid var(--la-border); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease; z-index: 50; }
+.la-nav-tooltip { position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); padding: 6px 12px; background: #0c0c0c; color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; border-radius: 6px; border: 1px solid var(--la-border); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease; z-index: 50; }
 .la-nav-tooltip::before { content: ''; position: absolute; right: 100%; top: 50%; transform: translateY(-50%); border: 5px solid transparent; border-right-color: var(--la-border); }
-.la-nav-tooltip::after { content: ''; position: absolute; right: 100%; top: 50%; transform: translateY(-50%); border: 4px solid transparent; border-right-color: #0c1a26; }
+.la-nav-tooltip::after { content: ''; position: absolute; right: 100%; top: 50%; transform: translateY(-50%); border: 4px solid transparent; border-right-color: #0c0c0c; }
 .la-nav-item:hover .la-nav-tooltip, .la-nav-item:focus-visible .la-nav-tooltip { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(2px); }
 
 /* Avatar / Wallet Footer Item */
@@ -85,7 +85,7 @@
 .la-avatar-wrap .la-status-dot { position: absolute; bottom: 0; right: 0; box-shadow: 0 0 0 2px var(--la-sidebar); }
 .la-mobile-header, .la-sidebar-backdrop { display: none; }
 .la-main-column { display: flex; flex-direction: column; min-width: 0; }
-.la-topbar { height: 76px; padding: 0 clamp(24px, 4vw, 60px); display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--la-border); background: #091a27; }
+.la-topbar { height: 76px; padding: 0 clamp(24px, 4vw, 60px); display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--la-border); background: #000000; }
 .la-topbar-title { display: inline-flex; align-items: center; gap: 10px; color: var(--la-secondary); font-size: 14px; font-weight: 650; }
 .la-topbar-title svg { color: var(--la-accent); }
 .la-topbar-wallet { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; max-width: 100%; padding: 0 14px; border: 1px solid var(--la-border); border-radius: 8px; color: var(--la-text); background: var(--la-surface); font-size: 13px; }
@@ -801,3 +801,383 @@ a.la-choice:hover { border-color: #48a692; background: #102b35; transform: trans
   .loanch-app:has(.la-entry--actions)::before, .loanch-app:has(.la-entry--actions)::after { animation: none; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Save page — card aesthetic aligned with /app action cards
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Spotlight wrapper layout fixes (grid-stretch) ─────────────────────── */
+/* These wrappers sit directly inside la-dashboard-grid / la-flow-grid,
+   so they must behave as proper grid cells and stretch to fill. */
+.la-feature-panel-spotlight,
+.la-side-panel-spotlight,
+.la-form-panel-spotlight,
+.la-flow-aside-spotlight {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 0;
+}
+/* la-flow-aside is sticky/start-aligned */
+.la-flow-aside-spotlight {
+  align-self: start;
+}
+/* SpotlightCard inner .card-spotlight must also flex-stretch */
+.la-feature-panel-spotlight > .card-spotlight,
+.la-side-panel-spotlight > .card-spotlight,
+.la-form-panel-spotlight > .card-spotlight,
+.la-flow-aside-spotlight > .card-spotlight {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+/* Metric spotlight wrappers inside la-metric-grid (no stretch needed) */
+.la-metric-spotlight {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.la-metric-spotlight > .card-spotlight {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ── Save Dashboard – Feature panel ────────────────────────────────────── */
+.la-feature-panel--save {
+  /* Match the /app Save action card dark gradient */
+  flex: 1;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(6, 78, 70, 0.35) 0%, rgba(7, 21, 36, 0.85) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(49, 208, 163, 0.25),
+    inset 0 0 28px rgba(49, 208, 163, 0.08);
+  transition:
+    box-shadow var(--la-normal) ease,
+    background var(--la-normal) ease;
+}
+/* Corner light ring — matching /app card orbit decoration */
+.la-feature-panel--save::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 260px;
+  height: 260px;
+  right: -130px;
+  bottom: -140px;
+  border: 1px solid rgba(49, 208, 163, 0.1);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 44px rgba(49, 208, 163, 0.03),
+    0 0 0 88px rgba(49, 208, 163, 0.015);
+  pointer-events: none;
+}
+.la-feature-panel--save > * {
+  position: relative;
+  z-index: 1;
+}
+.la-feature-panel--save h2 {
+  color: #fff;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.la-feature-panel--save > p {
+  color: var(--la-secondary);
+  font-size: 14px;
+}
+/* Large principal figure in mint, matching figure treatment */
+.la-feature-panel--save .la-figure {
+  color: var(--la-mint);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 24px rgba(49, 208, 163, 0.35);
+}
+/* Subtler data-line dividers */
+.la-feature-panel--save .la-data-line {
+  border-top-color: rgba(49, 208, 163, 0.12);
+}
+/* Claim return CTA pulse glow */
+.la-feature-panel--save .la-action-result .la-button--primary {
+  box-shadow: 0 0 18px rgba(49, 208, 163, 0.3), 0 8px 20px rgba(15, 167, 143, 0.14);
+  transition: box-shadow var(--la-fast) ease, background var(--la-fast) ease;
+}
+.la-feature-panel--save .la-action-result .la-button--primary:hover:not(:disabled) {
+  box-shadow: 0 0 32px rgba(49, 208, 163, 0.48), 0 8px 24px rgba(15, 167, 143, 0.2);
+}
+
+/* ── Save Dashboard – Side / "Next action" panel ───────────────────────── */
+.la-side-panel--save {
+  flex: 1;
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.25) 0%, rgba(7, 21, 36, 0.85) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(49, 208, 163, 0.18),
+    inset 0 0 28px rgba(49, 208, 163, 0.05);
+  transition:
+    box-shadow var(--la-normal) ease,
+    background var(--la-normal) ease;
+}
+.la-side-panel--save h2 {
+  color: #fff;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.la-side-panel--save > p {
+  color: var(--la-secondary);
+}
+.la-side-panel--save .la-stack-actions {
+  margin-top: auto;
+}
+
+/* ── Save Dashboard – Pool context metric cards ─────────────────────────── */
+.la-metric-spotlight .la-metric {
+  border: none;
+  background: linear-gradient(145deg, rgba(6, 78, 70, 0.3) 0%, rgba(7, 21, 36, 0.8) 100%);
+  border-radius: 12px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(49, 208, 163, 0.2),
+    inset 0 0 20px rgba(49, 208, 163, 0.06);
+  transition:
+    box-shadow var(--la-normal) ease,
+    transform var(--la-normal) ease;
+}
+.la-metric-spotlight:hover .la-metric {
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(49, 208, 163, 0.28),
+    0 0 24px rgba(49, 208, 163, 0.15);
+}
+.la-metric-spotlight .la-metric h3 {
+  color: var(--la-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.la-metric-spotlight .la-metric strong {
+  color: var(--la-mint);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 20px rgba(49, 208, 163, 0.3);
+}
+
+/* ── FinancialForm – Form panel (Deposit / Withdraw / etc.) ─────────────── */
+.la-form-panel-spotlight .la-form-panel {
+  flex: 1;
+  background: linear-gradient(145deg, rgba(6, 78, 70, 0.3) 0%, rgba(7, 21, 36, 0.88) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(49, 208, 163, 0.22),
+    inset 0 0 28px rgba(49, 208, 163, 0.07);
+  transition:
+    box-shadow var(--la-normal) ease;
+}
+.la-form-panel-spotlight .la-form-panel h2 {
+  color: #fff;
+}
+/* Input glow on focus */
+.la-form-panel-spotlight .la-input-wrap {
+  border-color: rgba(49, 208, 163, 0.25);
+  background: rgba(7, 21, 36, 0.6);
+  transition: border-color var(--la-fast) ease, box-shadow var(--la-fast) ease;
+}
+.la-form-panel-spotlight .la-input-wrap:focus-within {
+  border-color: var(--la-mint);
+  box-shadow: 0 0 0 3px rgba(49, 208, 163, 0.15);
+  outline: none;
+}
+.la-form-panel-spotlight .la-input-wrap input {
+  color: #fff;
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+}
+/* Primary button glow matches action card CTAs */
+.la-form-panel-spotlight .la-form-panel .la-button--primary {
+  box-shadow: 0 0 16px rgba(49, 208, 163, 0.25), 0 8px 20px rgba(15, 167, 143, 0.14);
+  transition: background var(--la-fast) ease, box-shadow var(--la-fast) ease, transform var(--la-fast) ease;
+}
+.la-form-panel-spotlight .la-form-panel .la-button--primary:hover:not(:disabled) {
+  box-shadow: 0 0 28px rgba(49, 208, 163, 0.4), 0 8px 24px rgba(15, 167, 143, 0.2);
+}
+/* Review data-lines */
+.la-form-panel-spotlight .la-review .la-data-line {
+  border-top-color: rgba(49, 208, 163, 0.1);
+}
+
+/* ── FinancialForm – Flow aside (Live limits + Tracker) ─────────────────── */
+.la-flow-aside-spotlight .la-flow-aside {
+  background: linear-gradient(145deg, rgba(6, 78, 70, 0.22) 0%, rgba(7, 21, 36, 0.88) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(49, 208, 163, 0.16),
+    inset 0 0 20px rgba(49, 208, 163, 0.05);
+}
+.la-flow-aside-spotlight .la-requirements h2 {
+  color: #fff;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.la-flow-aside-spotlight .la-requirements .la-data-line {
+  border-top-color: rgba(49, 208, 163, 0.1);
+}
+.la-flow-aside-spotlight .la-tracker {
+  background: rgba(7, 21, 36, 0.65);
+  border-color: rgba(49, 208, 163, 0.16);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Borrow page — card aesthetic aligned with /app Borrow action card (blue)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── la-panel-spotlight wrapper (generic, reused across pages) ─────────── */
+.la-panel-spotlight {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.la-panel-spotlight > .card-spotlight {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ── Borrow Dashboard – Feature panel (Your borrowing) ─────────────────── */
+.la-feature-panel--borrow {
+  flex: 1;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.38) 0%, rgba(7, 21, 36, 0.88) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(59, 130, 246, 0.28),
+    inset 0 0 28px rgba(59, 130, 246, 0.08);
+  transition:
+    box-shadow var(--la-normal) ease,
+    background var(--la-normal) ease;
+}
+/* Corner light ring */
+.la-feature-panel--borrow::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 260px;
+  height: 260px;
+  right: -130px;
+  bottom: -140px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 44px rgba(59, 130, 246, 0.03),
+    0 0 0 88px rgba(59, 130, 246, 0.015);
+  pointer-events: none;
+}
+.la-feature-panel--borrow > * {
+  position: relative;
+  z-index: 1;
+}
+.la-feature-panel--borrow h2 {
+  color: #fff;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.la-feature-panel--borrow > p {
+  color: var(--la-secondary);
+  font-size: 14px;
+}
+.la-feature-panel--borrow .la-figure {
+  color: var(--la-blue);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 24px rgba(59, 130, 246, 0.4);
+}
+.la-feature-panel--borrow .la-data-line {
+  border-top-color: rgba(59, 130, 246, 0.12);
+}
+
+/* ── Borrow Dashboard – Side panel (Before you request) ────────────────── */
+.la-side-panel--borrow {
+  flex: 1;
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.22) 0%, rgba(7, 21, 36, 0.88) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(59, 130, 246, 0.2),
+    inset 0 0 28px rgba(59, 130, 246, 0.05);
+  transition:
+    box-shadow var(--la-normal) ease,
+    background var(--la-normal) ease;
+}
+.la-side-panel--borrow h2 {
+  color: #fff;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.la-side-panel--borrow > p {
+  color: var(--la-secondary);
+}
+
+/* ── Borrow – Generic panel (Borrower position, Loan detail) ────────────── */
+.la-panel--borrow {
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.25) 0%, rgba(7, 21, 36, 0.85) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(59, 130, 246, 0.2),
+    inset 0 0 20px rgba(59, 130, 246, 0.06);
+}
+.la-panel--borrow .la-data-line {
+  border-top-color: rgba(59, 130, 246, 0.1);
+}
+
+/* ── Borrow forms — FinancialForm override for borrow-type spotlight ────── */
+/* request / repay / stake / unstake: use blue accent on form panel + aside  */
+.la-borrow-form .la-form-panel-spotlight .la-form-panel {
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.3) 0%, rgba(7, 21, 36, 0.88) 100%);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(59, 130, 246, 0.22),
+    inset 0 0 28px rgba(59, 130, 246, 0.07);
+}
+.la-borrow-form .la-form-panel-spotlight .la-input-wrap {
+  border-color: rgba(59, 130, 246, 0.28);
+}
+.la-borrow-form .la-form-panel-spotlight .la-input-wrap:focus-within {
+  border-color: var(--la-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.la-borrow-form .la-flow-aside-spotlight .la-flow-aside {
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.22) 0%, rgba(7, 21, 36, 0.88) 100%);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(59, 130, 246, 0.16),
+    inset 0 0 20px rgba(59, 130, 246, 0.05);
+}
+.la-borrow-form .la-flow-aside-spotlight .la-requirements .la-data-line {
+  border-top-color: rgba(59, 130, 246, 0.1);
+}
+.la-borrow-form .la-flow-aside-spotlight .la-tracker {
+  border-color: rgba(59, 130, 246, 0.18);
+}
