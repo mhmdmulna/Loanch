@@ -112,7 +112,7 @@
 .la-entry { width: min(100%, 1120px); min-height: auto; display: grid; align-content: start; margin: 0 auto; padding-block: var(--la-space-2) var(--la-space-4); }
 .la-entry .la-page-heading { margin-bottom: var(--la-space-6); }
 .la-entry .la-page-heading p { max-width: 590px; }
-.la-entry-surface { position: relative; overflow: hidden; padding: var(--la-space-4); border: 1px solid rgba(49, 208, 163, .16); border-radius: var(--la-radius-lg); background: rgba(10, 28, 41, .72); box-shadow: 0 24px 60px rgba(0, 0, 0, .18); }
+.la-entry-surface { position: relative; overflow: hidden; padding: var(--la-space-4); border: 1px solid rgba(49, 208, 163, .16); border-radius: var(--la-radius-lg); background: rgba(10, 10, 10, .85); box-shadow: 0 24px 60px rgba(0, 0, 0, .4); }
 .la-entry-surface::after { content: ""; position: absolute; z-index: 0; width: 260px; height: 260px; right: -152px; bottom: -174px; border: 1px solid rgba(49, 208, 163, .1); border-radius: 50%; box-shadow: 0 0 0 44px rgba(49, 208, 163, .025), 0 0 0 88px rgba(49, 208, 163, .015); pointer-events: none; }
 .la-entry-surface > * { position: relative; z-index: 1; }
 .la-wallet-panel { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; align-items: center; gap: var(--la-space-5); padding: 28px; border: 1px solid #33615f; border-radius: var(--la-radius-md); background: var(--la-teal); }
@@ -151,7 +151,7 @@ a.la-choice:hover { border-color: #48a692; background: #102b35; transform: trans
 .la-data-line > span { min-width: 0; }
 .la-data-line small { display: block; color: var(--la-muted); font-size: 12px; }
 .la-data-line strong { min-width: 0; color: var(--la-text); font-size: 14px; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.la-side-panel { display: flex; flex-direction: column; align-items: flex-start; padding: 30px; background: #112c36; }
+.la-side-panel { display: flex; flex-direction: column; align-items: flex-start; padding: 30px; background: #0c0c0c; }
 .la-stack-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 30px; }
 .la-section { margin-top: 48px; }
 .la-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
@@ -172,6 +172,33 @@ a.la-choice:hover { border-color: #48a692; background: #102b35; transform: trans
 .la-empty p { max-width: 590px; margin-top: 8px; color: var(--la-secondary); font-size: 14px; line-height: 1.6; }
 .la-empty-actions { margin-top: 22px; }
 .la-flow-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(290px, 1fr); gap: 18px; }
+.la-feature-panel-spotlight,
+.la-side-panel-spotlight,
+.la-form-panel-spotlight,
+.la-flow-aside-spotlight,
+.la-panel-spotlight,
+.la-metric-spotlight {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-self: start;
+  border-radius: 12px;
+}
+.la-feature-panel-spotlight,
+.la-side-panel-spotlight {
+  height: 100%;
+}
+.la-feature-panel-spotlight > *,
+.la-side-panel-spotlight > *,
+.la-form-panel-spotlight > *,
+.la-flow-aside-spotlight > *,
+.la-panel-spotlight > *,
+.la-metric-spotlight > * {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  align-self: stretch !important;
+}
 .la-form-panel { align-self: start; padding: 30px; }
 .la-form-panel h2 { margin-bottom: 26px; }
 .la-field { display: grid; gap: 10px; color: var(--la-text); font-size: 14px; font-weight: 650; }
@@ -184,8 +211,8 @@ a.la-choice:hover { border-color: #48a692; background: #102b35; transform: trans
 .la-field-hint { margin: 10px 0 22px !important; color: var(--la-muted); font-size: 13px; line-height: 1.5; }
 .la-field-error { margin: -10px 0 18px !important; color: #ffc8bb; font-size: 13px; }
 .la-form-panel .la-button { margin-top: 4px; }
-.la-flow-aside { align-self: start; display: grid; gap: 20px; padding: 24px; background: #0b1d2a; }
-.la-notice { padding: 17px 18px; border: 1px solid #41616a; border-radius: 8px; color: var(--la-secondary); font-size: 14px; line-height: 1.55; background: #122d39; }
+.la-flow-aside { align-self: start; display: grid; gap: 20px; padding: 24px; background: #0a0a0a; }
+.la-notice { padding: 17px 18px; border: 1px solid #41616a; border-radius: 8px; color: var(--la-secondary); font-size: 14px; line-height: 1.55; background: #111111; }
 .la-notice--warning { color: #ffe0b0; border-color: #6e654d; background: #292b2c; }
 .la-notice--success { color: #c9f4e6; border-color: #367a69; background: #13392f; }
 .la-flow-aside .la-empty { padding: 18px; }
@@ -215,24 +242,32 @@ a.la-choice:hover { border-color: #48a692; background: #102b35; transform: trans
 .la-footer { display: flex; justify-content: space-between; gap: 16px; padding: 20px clamp(24px, 4vw, 60px); border-top: 1px solid var(--la-border); color: var(--la-muted); font-size: 12px; }
 .la-footer span:last-child { display: inline-flex; align-items: center; gap: 8px; }
 
-/* Desktop-only action selection treatment. */
+/* Ambient background treatment across ALL app pages */
 @media (min-width: 1101px) {
-  .loanch-app:has(.la-entry--actions) {
+  .loanch-app {
     overflow-x: clip;
     background: black;
   }
 
-  .loanch-app:has(.la-entry--actions)::before {
+  .loanch-app::before {
+    content: "";
+    position: fixed;
+    z-index: 0;
     inset: 0;
+    pointer-events: none;
     background:
+      linear-gradient(rgba(49, 208, 163, .025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(49, 208, 163, .025) 1px, transparent 1px),
       radial-gradient(circle at 18% 28%, color-mix(in srgb, var(--la-teal) 15%, transparent), transparent 38%),
       radial-gradient(circle at 78% 72%, color-mix(in srgb, var(--la-blue) 14%, transparent), transparent 42%),
       radial-gradient(circle at 52% 46%, color-mix(in srgb, var(--la-emerald) 6%, transparent), transparent 48%);
+    background-size: 48px 48px, 48px 48px, auto, auto, auto;
+    mask-image: linear-gradient(to bottom right, rgba(0,0,0,.8), transparent 72%);
     animation: la-action-ambient-drift calc(var(--la-normal) * 60) ease-in-out infinite alternate;
     will-change: transform;
   }
 
-  .loanch-app:has(.la-entry--actions)::after {
+  .loanch-app::after {
     content: "";
     position: fixed;
     z-index: 0;
@@ -247,7 +282,7 @@ a.la-choice:hover { border-color: #48a692; background: #102b35; transform: trans
     will-change: transform;
   }
 
-  .loanch-app:has(.la-entry--actions) .la-sidebar {
+  .loanch-app .la-sidebar {
     background: color-mix(in srgb, black 88%, var(--la-teal));
     border-right-color: color-mix(in srgb, var(--la-text-inverse) 8%, transparent);
   }

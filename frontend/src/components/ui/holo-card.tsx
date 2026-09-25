@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const MOTIQ_TOKENS = "@layer motiq{:root,.dark,[data-theme=\"dark\"]{--motiq-accent:#31d0a3;--motiq-accent-text:#8ce6d0;--motiq-bg:#071524;--motiq-border:rgba(49,208,163,0.25);--motiq-border-strong:rgba(49,208,163,0.4);--motiq-fg:#ffffff;--motiq-fg-secondary:#c4e0dd;--motiq-muted:#94a3b8;--motiq-secondary-accent:#0fa78f;--motiq-surface:#0f2538;--motiq-surface-2:#091a27}}";
+const MOTIQ_TOKENS = "@layer motiq{:root,.dark,[data-theme=\"dark\"]{--motiq-accent:#31d0a3;--motiq-accent-text:#8ce6d0;--motiq-bg:#000000;--motiq-border:rgba(49,208,163,0.25);--motiq-border-strong:rgba(49,208,163,0.4);--motiq-fg:#ffffff;--motiq-fg-secondary:#c4e0dd;--motiq-muted:#94a3b8;--motiq-secondary-accent:#0fa78f;--motiq-surface:#0a0a0a;--motiq-surface-2:#121212}}";
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = React.useState(

@@ -311,10 +311,7 @@ function PoolActionButton({ kind, wallet, pool }: { kind: 'claim'; wallet: Walle
 function SaveDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Pool; navigate: (href: string) => void }) {
   const data = pool.data
   return <>
-    <PageHeader title="Save" description="Your deposit position and the actions available for the shared pool.">
-      <ActionLink href="/app/save/deposit" navigate={navigate}>Deposit funds</ActionLink>
-      <ActionLink href="/app/save/withdraw" navigate={navigate} secondary>Withdraw</ActionLink>
-    </PageHeader>
+    <PageHeader title="Save" description="Your deposit position and the actions available for the shared pool." />
     <AccessNote wallet={wallet} />
     <PoolNotice pool={pool} />
     <div className="la-dashboard-grid">
@@ -359,11 +356,7 @@ function BorrowDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Poo
   const data = pool.data
   const loan = data?.activeLoan
   return <>
-    <PageHeader title="Borrow" description="Check your loan status, then prepare a request or repayment.">
-      <ActionLink href="/app/borrow/request" navigate={navigate}>Request a loan</ActionLink>
-      <ActionLink href="/app/borrow/repay" navigate={navigate} secondary>Repay a loan</ActionLink>
-      <ActionLink href="/app/borrow/stake" navigate={navigate} secondary>Manage stake</ActionLink>
-    </PageHeader>
+    <PageHeader title="Borrow" description="Check your loan status, then prepare a request or repayment." />
     <AccessNote wallet={wallet} />
     <PoolNotice pool={pool} />
     <div className="la-dashboard-grid">
@@ -381,7 +374,11 @@ function BorrowDashboard({ wallet, pool, navigate }: { wallet: Wallet; pool: Poo
         <div className="la-side-panel la-side-panel--borrow">
           <h2>Before you request</h2>
           <p>Risk, reputation, free stake, loan limit, and liquidity are checked on-chain before a request.</p>
-          <ActionLink href="/app/borrow/request" navigate={navigate}>Review requirements</ActionLink>
+          <div className="la-stack-actions">
+            <ActionLink href="/app/borrow/request" navigate={navigate}>Request a loan</ActionLink>
+            <ActionLink href="/app/borrow/repay" navigate={navigate} secondary>Repay a loan</ActionLink>
+            <ActionLink href="/app/borrow/stake" navigate={navigate} secondary>Manage stake</ActionLink>
+          </div>
         </div>
       </SpotlightCard>
     </div>
