@@ -1,21 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { BrowserProvider } from 'ethers'
+import { botChainConfig } from '../contracts/config'
+import { getWalletProvider, subscribeWalletProvider, type InjectedProvider } from '../contracts/walletProvider'
 
 export type WalletState = 'disconnected' | 'connecting' | 'connected' | 'rejected' | 'wrong-network'
 
-type InjectedProvider = {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
-  on?: (event: 'accountsChanged' | 'chainChanged', handler: (...args: unknown[]) => void) => void
-  removeListener?: (event: 'accountsChanged' | 'chainChanged', handler: (...args: unknown[]) => void) => void
-}
-
-declare global {
-  interface Window {
-    ethereum?: InjectedProvider
-  }
-}
-
-const configuredChainId = import.meta.env.VITE_BOT_CHAIN_CHAIN_ID?.trim() || ''
+const configuredChainId = botChainConfig.chainId
 const validChainId = /^\d+$/.test(configuredChainId) && BigInt(configuredChainId) > 0n
 export const expectedChainId = validChainId ? BigInt(configuredChainId) : null
 
@@ -32,16 +22,19 @@ export function useWallet() {
   const [hasMetaMask, setHasMetaMask] = useState(false)
   const requestId = useRef(0)
   const mounted = useRef(false)
+  const providerRef = useRef<InjectedProvider | null>(null)
 
-  const inspect = useCallback(async (knownAccounts?: string[]) => {
+  const inspect = useCallback(async (knownAccounts?: string[], providerOverride?: InjectedProvider | null) => {
     const id = ++requestId.current
-    const injected = window.ethereum
-    setHasMetaMask(Boolean(window.ethereum))
+    const injected = providerOverride || providerRef.current || getWalletProvider()
+    providerRef.current = injected
+    setHasMetaMask(Boolean(injected))
     if (!injected) {
       if (mounted.current) {
         setStatus('disconnected')
         setAddress('')
         setChainId(null)
+        setInitialLoading(false)
       }
       return
     }
@@ -87,27 +80,38 @@ export function useWallet() {
 
   useEffect(() => {
     mounted.current = true
-    void Promise.resolve().then(() => inspect())
-    const injected = window.ethereum
+    let injected: InjectedProvider | null = null
 
     const handleAccountsChanged = (value: unknown) => {
-      void inspect(Array.isArray(value) ? value as string[] : [])
+      void inspect(Array.isArray(value) ? value as string[] : [], injected)
     }
     const handleChainChanged = () => {
-      void inspect()
+      void inspect(undefined, injected)
     }
 
-    injected?.on?.('accountsChanged', handleAccountsChanged)
-    injected?.on?.('chainChanged', handleChainChanged)
+    const useProvider = (provider: InjectedProvider | null) => {
+      if (provider === injected) return
+      injected?.removeListener?.('accountsChanged', handleAccountsChanged)
+      injected?.removeListener?.('chainChanged', handleChainChanged)
+      injected = provider
+      providerRef.current = provider
+      provider?.on?.('accountsChanged', handleAccountsChanged)
+      provider?.on?.('chainChanged', handleChainChanged)
+      void inspect(undefined, provider)
+    }
+
+    const unsubscribe = subscribeWalletProvider(useProvider)
     return () => {
       mounted.current = false
+      unsubscribe()
       injected?.removeListener?.('accountsChanged', handleAccountsChanged)
       injected?.removeListener?.('chainChanged', handleChainChanged)
     }
   }, [inspect])
 
   const connect = useCallback(async () => {
-    if (!window.ethereum) {
+    const injected = providerRef.current || getWalletProvider()
+    if (!injected) {
       setStatus('disconnected')
       setError('MetaMask is not installed in this browser.')
       return
@@ -115,8 +119,8 @@ export function useWallet() {
     setStatus('connecting')
     setError('')
     try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[]
-      await inspect(accounts)
+      const accounts = await injected.request({ method: 'eth_requestAccounts' }) as string[]
+      await inspect(accounts, injected)
     } catch (cause) {
       const code = (cause as { code?: number }).code
       if (!mounted.current) return
@@ -128,22 +132,42 @@ export function useWallet() {
   }, [inspect])
 
   const switchNetwork = useCallback(async () => {
-    if (!window.ethereum || expectedChainId === null) return
+    const injected = providerRef.current || getWalletProvider()
+    if (!injected || expectedChainId === null) return
     setStatus('connecting')
     setError('')
     try {
-      await window.ethereum.request({
+      await injected.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${expectedChainId.toString(16)}` }],
       })
-      await inspect()
+      await inspect(undefined, injected)
     } catch (cause) {
       if (!mounted.current) return
       const code = (cause as { code?: number }).code
+      if (code === 4902) {
+        try {
+          await injected.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: `0x${expectedChainId.toString(16)}`,
+              chainName: botChainConfig.chainName,
+              nativeCurrency: botChainConfig.nativeCurrency,
+              rpcUrls: [botChainConfig.rpcUrl],
+              blockExplorerUrls: [botChainConfig.explorerUrl],
+            }],
+          })
+          await inspect(undefined, injected)
+          return
+        } catch (addCause) {
+          const addCode = (addCause as { code?: number }).code
+          setStatus('wrong-network')
+          setError(addCode === 4001 ? 'Adding BOT Chain was rejected in MetaMask.' : 'Could not add BOT Chain to MetaMask.')
+          return
+        }
+      }
       setStatus('wrong-network')
-      setError(code === 4902
-        ? 'BOT Chain is not added to MetaMask. Add it manually with the project network details.'
-        : code === 4001
+      setError(code === 4001
           ? 'Network switch rejected in MetaMask.'
           : 'Could not switch networks. Check MetaMask and try again.')
     }

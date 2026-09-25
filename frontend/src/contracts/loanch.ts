@@ -2,6 +2,7 @@ import { BrowserProvider, Contract, Interface, JsonRpcProvider, formatUnits, isA
 import abi from './LoanchPool.json'
 import { LOANCH_CONTRACT_ADDRESS } from './addresses'
 import { botChainConfig } from './config'
+import { getWalletProvider } from './walletProvider'
 
 export type PoolStats = {
   totalShares: bigint; saverPrincipalClaims: bigint; liquidPoolAssets: bigint
@@ -172,8 +173,9 @@ function readableError(cause: unknown) {
 
 export async function submitAction(action: Action, account: string, data: PoolData, onProgress: (value: TxProgress) => void) {
   const expected = config()
-  if (!window.ethereum || !isAddress(account)) throw new Error('Connect MetaMask first.')
-  const browser = new BrowserProvider(window.ethereum)
+  const injected = getWalletProvider()
+  if (!injected || !isAddress(account)) throw new Error('Connect MetaMask first.')
+  const browser = new BrowserProvider(injected)
   if ((await browser.getNetwork()).chainId !== expected.chainId) throw new Error('Switch MetaMask to the configured chain.')
   if (await browser.getCode(expected.address) === '0x') throw new Error('The pool contract is not available in MetaMask.')
   const signer = await browser.getSigner(account)

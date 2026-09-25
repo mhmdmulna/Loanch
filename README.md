@@ -87,7 +87,7 @@ Savers can withdraw their deposited principal and claim earned returns from the 
 | **Frontend** | React 19, TypeScript, Vite 8, Tailwind CSS 4 |
 | **Web3 Integration** | ethers.js 6, MetaMask |
 | **UI Components** | shadcn/ui, Radix UI, Lucide React, Framer Motion |
-| **Blockchain** | BOT Chain (Chain ID: 968) |
+| **Blockchain** | BOT Chain Mainnet (Chain ID: 677) |
 
 ---
 
@@ -170,10 +170,14 @@ DEPLOYER_PRIVATE_KEY=<your-private-key>
 Frontend `.env` (in `frontend/`):
 
 ```env
-VITE_BOT_CHAIN_RPC_URL=https://rpc.bohr.life
-VITE_BOT_CHAIN_CHAIN_ID=968
-VITE_LOANCH_CONTRACT_ADDRESS=<deployed-contract-address>
+VITE_BOT_CHAIN_RPC_URL=https://rpc.botchain.ai
+VITE_BOT_CHAIN_CHAIN_ID=677
+VITE_BOT_CHAIN_NAME=BOT Chain Mainnet
+VITE_BOT_CHAIN_EXPLORER_URL=https://scan.botchain.ai
+VITE_LOANCH_CONTRACT_ADDRESS=0xe42f0fd2623B5019F414865937f3c9bECb9342AE
 ```
+
+Set the same `VITE_` variables for the Vercel Production environment, then redeploy. Vite embeds these public values at build time. The frontend also includes the verified BOT Chain Mainnet values as safe public defaults so wallet connection does not silently break when a deployment is missing build-time variables.
 
 ### Compile & Test the Smart Contract
 
@@ -277,7 +281,10 @@ setSaverWeight(user, weightBps)
 | Item | Value |
 |---|---|
 | **Network** | BOT Chain Mainnet |
-| **Contract Address** | _Not yet deployed_ |
+| **Chain ID** | 677 |
+| **RPC URL** | `https://rpc.botchain.ai` |
+| **Contract Address** | `0xe42f0fd2623B5019F414865937f3c9bECb9342AE` |
+| **Explorer** | [https://scan.botchain.ai/address/0xe42f0fd2623B5019F414865937f3c9bECb9342AE](https://scan.botchain.ai/address/0xe42f0fd2623B5019F414865937f3c9bECb9342AE) |
 
 ---
 
