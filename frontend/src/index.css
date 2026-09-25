@@ -1123,10 +1123,18 @@ p {
 }
 
 .ledger-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(49, 208, 163, 0.12);
+  border: 1px solid rgba(49, 208, 163, 0.25);
   color: var(--mint);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: .1em;
+  letter-spacing: .08em;
+  line-height: 1;
 }
 
 .ledger-row {
