@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import {
-  ArrowRight, Check,
-  Copy, ExternalLink, FileText, Landmark, Menu, PiggyBank, Receipt, ShieldCheck, Wallet, X,
+  AlertTriangle, ArrowRight, Check, CheckCircle2,
+  Copy, ExternalLink, FileText, Landmark, Loader2, Menu, PiggyBank, Receipt, ShieldCheck, Wallet, X,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -98,7 +98,13 @@ function Section({ title, description, children, className = '' }: {
 }
 
 function Notice({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'warning' | 'success' }) {
-  return <div className={`la-notice la-notice--${tone}`} role={tone === 'warning' ? 'alert' : 'status'}>{children}</div>
+  const Icon = tone === 'warning' ? AlertTriangle : tone === 'success' ? CheckCircle2 : Loader2
+  return (
+    <div className={`la-notice la-notice--${tone}`} role={tone === 'warning' ? 'alert' : 'status'}>
+      <Icon size={16} className={`la-notice-icon ${tone === 'neutral' ? 'la-spinner' : ''}`} aria-hidden="true" />
+      <span>{children}</span>
+    </div>
+  )
 }
 
 function EmptyState({ title, description, children }: { title: string; description: string; children?: ReactNode }) {
