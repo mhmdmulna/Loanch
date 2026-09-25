@@ -7,6 +7,7 @@ import { Navbar } from './components/Navbar/Navbar'
 import { TextAnimate } from './components/magicui/text-animate'
 import { ShinyButton } from './components/magicui/shiny-button'
 import { HoloCard } from './components/ui/holo-card'
+import { SpotlightCard } from './components/SpotlightCard'
 import AppExperience from './app/AppExperience'
 
 const HERO_WORDS = [
@@ -116,28 +117,43 @@ function LandingPage() {
           <Entrance className="hero-visual" delay={0.1}>
             <div className="flex w-full items-center justify-center p-2">
               <div data-theme="dark" className="w-[440px] max-w-full">
-                <HoloCard maxTilt={16} aspect={1.586} label="Loanch Shared Liquidity Pool">
-                  <div className="flex items-start justify-between">
-                    <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#31d0a3]">
-                      LOANCH
-                    </span>
-                    <span className="rounded-full border border-[rgba(49,208,163,0.3)] bg-[rgba(49,208,163,0.12)] px-2.5 py-0.5 text-[10px] font-bold text-[#8ce6d0]">
-                      ON-CHAIN POOL
-                    </span>
-                  </div>
+                <HoloCard maxTilt={16} aspect={1.586} label="Loanch Saver Access Card">
+                  <div className="flex flex-col justify-between h-full font-['Plus_Jakarta_Sans']">
+                    {/* Top Row: Brand & Card Type */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-extrabold tracking-[0.2em] text-white">
+                        LOANCH
+                      </span>
+                      <span className="text-[11px] font-semibold tracking-wider text-slate-300">
+                        Saver Access Card
+                      </span>
+                    </div>
 
-                  <div className="my-2">
-                    <p className="text-2xl font-bold tracking-tight text-white">
-                      Shared Liquidity
-                    </p>
-                    <p className="mt-1 text-sm text-[#b4c7cb]">
-                      Deposits fund borrowers. Repayments return yield, recorded transparently.
-                    </p>
-                  </div>
+                    {/* Middle Row: Card Number */}
+                    <div className="my-auto pt-3">
+                      <p className="text-xl font-bold tracking-[0.22em] text-white">
+                        5293 4300 0001 2026
+                      </p>
+                    </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-[#94a3b8]">
-                    <span className="font-mono font-semibold tracking-widest text-[#31d0a3]">POOL #0001</span>
-                    <span>Verifiable Rules</span>
+                    {/* Bottom Row: Expiry, Cardholder & Network */}
+                    <div className="flex items-end justify-between text-[11px] text-slate-300">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-[9px] font-medium text-slate-400">
+                          <span>VALID THRU</span>
+                          <span className="text-[11px] font-semibold text-slate-200">12/29</span>
+                        </div>
+                        <span className="font-bold tracking-wider text-white">
+                          CARDHOLDER
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <img src="/bot-logo.svg" alt="BOT Logo" className="h-5 w-auto object-contain" />
+                        <span className="font-bold tracking-widest text-[#10A37F]">
+                          BOT CHAIN
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </HoloCard>
               </div>
@@ -152,23 +168,23 @@ function LandingPage() {
 
       <section className="section benefits-section" id="benefits" aria-labelledby="benefits-title"><div className="container benefits-layout">
         <Entrance className="benefits-intro"><h2 id="benefits-title">Built for financial clarity.</h2><p>Simple lending, with rules and records you can inspect.</p><a className="inline-link" href="#transparency">Explore transparency <ArrowUpRight size={17} aria-hidden="true" /></a></Entrance>
-        <div className="benefits-grid">{benefits.map((benefit, index) => { const Icon = benefit.icon; return <Entrance className="benefit" key={benefit.title} delay={index * 0.05}><span className="benefit-icon"><Icon size={22} strokeWidth={1.7} aria-hidden="true" /></span><h3>{benefit.title}</h3><p>{benefit.description}</p></Entrance> })}</div>
+        <div className="benefits-grid">{benefits.map((benefit, index) => { const Icon = benefit.icon; return <Entrance key={benefit.title} delay={index * 0.05}><SpotlightCard className="benefit"><span className="benefit-icon"><Icon size={22} strokeWidth={1.7} aria-hidden="true" /></span><h3>{benefit.title}</h3><p>{benefit.description}</p></SpotlightCard></Entrance> })}</div>
       </div></section>
 
       <section className="section roles-section" id="for-you" aria-labelledby="roles-title"><div className="container">
         <Entrance className="section-heading roles-heading"><div><h2 id="roles-title">Your role. One shared system.</h2></div><p>Save into the pool or borrow from it.</p></Entrance>
         <div className="roles-grid">
-          <Entrance className="role-card role-card--saver"><div className="role-card-top"><span className="role-icon"><Wallet size={25} strokeWidth={1.7} /></span><span className="role-index">01 / SAVER</span></div><h3>Put funds to work.</h3><p>Deposit into the pool and receive a share of returns from borrower repayments.</p><div className="role-card-bottom"><span>Deposit funds <ChevronRight size={17} /> Pool position <ChevronRight size={17} /> Returns</span><ArrowUpRight size={21} /></div></Entrance>
-          <Entrance className="role-card role-card--borrower" delay={0.08}><div className="role-card-top"><span className="role-icon"><ArrowUpRight size={25} strokeWidth={1.7} /></span><span className="role-index">02 / BORROWER</span></div><h3>Borrow with clear terms.</h3><p>Apply for a loan, receive funds when eligible, and build a repayment record.</p><div className="role-card-bottom"><span>Request loan <ChevronRight size={17} /> Receive funds <ChevronRight size={17} /> Repay</span><ArrowUpRight size={21} /></div></Entrance>
+          <Entrance delay={0}><SpotlightCard className="role-card role-card--saver"><div className="role-card-top"><span className="role-icon"><Wallet size={25} strokeWidth={1.7} /></span><span className="role-index">01 / SAVER</span></div><h3>Put funds to work.</h3><p>Deposit into the pool and receive a share of returns from borrower repayments.</p><div className="role-card-bottom"><span>Deposit funds <ChevronRight size={17} /> Pool position <ChevronRight size={17} /> Returns</span><ArrowUpRight size={21} /></div></SpotlightCard></Entrance>
+          <Entrance delay={0.08}><SpotlightCard className="role-card role-card--borrower"><div className="role-card-top"><span className="role-icon"><ArrowUpRight size={25} strokeWidth={1.7} /></span><span className="role-index">02 / BORROWER</span></div><h3>Borrow with clear terms.</h3><p>Apply for a loan, receive funds when eligible, and build a repayment record.</p><div className="role-card-bottom"><span>Request loan <ChevronRight size={17} /> Receive funds <ChevronRight size={17} /> Repay</span><ArrowUpRight size={21} /></div></SpotlightCard></Entrance>
         </div>
       </div></section>
 
       <section className="section transparency-section" id="transparency" aria-labelledby="transparency-title"><div className="container transparency-layout">
         <Entrance className="transparency-copy"><h2 id="transparency-title">See the record.<br />Verify the rules.</h2><p>Pool activity, loans, repayments, and distributions are recorded on-chain so key financial activity can be independently verified.</p><div className="privacy-note"><LockKeyhole size={19} strokeWidth={1.7} aria-hidden="true" /><span>Sensitive personal information stays off-chain.</span></div></Entrance>
-        <Entrance className="ledger" delay={0.08}><div className="ledger-header"><span><span className="ledger-mark"><Database size={17} /></span> On-chain accounting</span><span className="ledger-label">VERIFIABLE</span></div>
+        <Entrance delay={0.08}><SpotlightCard className="ledger"><div className="ledger-header"><span><span className="ledger-mark"><Database size={17} /></span> On-chain accounting</span><span className="ledger-label">VERIFIABLE</span></div>
           {[['Deposits', Wallet], ['Pool allocation', Layers3], ['Repayments', ArrowDownRight], ['Return distribution', CircleDollarSign]].map(([label, Icon]) => { const RowIcon = Icon as typeof Wallet; return <div className="ledger-row" key={label as string}><span className="ledger-row-icon"><RowIcon size={17} /></span><span>{label as string}</span><span>Recorded <Check size={15} /></span></div> })}
           <div className="ledger-footer"><span>Important activity, open to inspection.</span><ArrowUpRight size={18} /></div>
-        </Entrance>
+        </SpotlightCard></Entrance>
       </div></section>
 
       <section className="final-cta" aria-labelledby="cta-title"><div className="container final-cta-inner"><Entrance><h2 id="cta-title">Lending you can follow.</h2><p>Save, borrow, and verify the flow.</p></Entrance><PrimaryLink className="button--light">Launch App</PrimaryLink></div></section>

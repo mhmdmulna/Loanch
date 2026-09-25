@@ -353,6 +353,12 @@ function HoloCardBase({
           />
         ) : null}
 
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-[100px] -top-[100px] h-[210px] w-[210px] rounded-full border border-[rgba(211,255,245,0.12)] shadow-[0_0_0_43px_rgba(211,255,245,0.028),0_0_0_85px_rgba(211,255,245,0.018)]"
+          style={{ transform: "translateZ(0)" }}
+        />
+
         <div className="relative flex h-full w-full flex-col justify-between gap-3 p-6" style={{ transform: "translateZ(1px)" }}>
           {children}
         </div>
