@@ -24,6 +24,7 @@ export function shortAddress(address: string) {
 }
 
 export function useWallet() {
+  const [initialLoading, setInitialLoading] = useState(true)
   const [status, setStatus] = useState<WalletState>('disconnected')
   const [address, setAddress] = useState('')
   const [chainId, setChainId] = useState<bigint | null>(null)
@@ -75,6 +76,10 @@ export function useWallet() {
       setAddress('')
       setChainId(null)
       setError('Could not read MetaMask connection. Try again.')
+    } finally {
+      if (id === requestId.current && mounted.current) {
+        setInitialLoading(false)
+      }
     }
   }, [])
 
@@ -142,6 +147,6 @@ export function useWallet() {
     }
   }, [inspect])
 
-  return { status, address, chainId, error, connect, switchNetwork, hasMetaMask: Boolean(window.ethereum) }
+  return { initialLoading, status, address, chainId, error, connect, switchNetwork, hasMetaMask: Boolean(window.ethereum) }
 }
 
