@@ -29,12 +29,14 @@ export function useWallet() {
   const [address, setAddress] = useState('')
   const [chainId, setChainId] = useState<bigint | null>(null)
   const [error, setError] = useState('')
+  const [hasMetaMask, setHasMetaMask] = useState(false)
   const requestId = useRef(0)
   const mounted = useRef(false)
 
   const inspect = useCallback(async (knownAccounts?: string[]) => {
     const id = ++requestId.current
     const injected = window.ethereum
+    setHasMetaMask(Boolean(window.ethereum))
     if (!injected) {
       if (mounted.current) {
         setStatus('disconnected')
@@ -147,6 +149,6 @@ export function useWallet() {
     }
   }, [inspect])
 
-  return { initialLoading, status, address, chainId, error, connect, switchNetwork, hasMetaMask: Boolean(window.ethereum) }
+  return { initialLoading, status, address, chainId, error, connect, switchNetwork, hasMetaMask }
 }
 

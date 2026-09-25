@@ -160,10 +160,10 @@ function WalletPanel({ wallet, compact = false }: { wallet: Wallet; compact?: bo
   }
   const detail: Record<WalletState, string> = {
     disconnected: error || 'Connect your wallet to choose Save or Borrow and view your account.',
-    connecting: 'Approve the request in MetaMask, then return to Loanch.',
-    connected: 'Your wallet is ready. You can use the same account for saving and borrowing.',
-    rejected: error || 'The connection request was rejected. You can try again.',
-    'wrong-network': error || 'Switch to the configured BOT Chain network to continue.',
+    connecting: 'Please check your MetaMask popup extension window and approve the connection request to gain full access to Loanch.',
+    connected: 'Your wallet is successfully connected. You can use this single account to save funds, request loans, and inspect pool activity.',
+    rejected: error || 'The connection request was cancelled or rejected in MetaMask. You can click the button to try connecting again.',
+    'wrong-network': error || 'Your wallet is currently on an unsupported network. Please switch to the configured BOT Chain network to proceed.',
   }
 
   return <section className={`la-wallet-panel la-wallet-panel--${status} ${compact ? 'la-wallet-panel--compact' : ''}`} aria-label="Wallet and network status" aria-busy={status === 'connecting'}>
@@ -179,7 +179,7 @@ function WalletPanel({ wallet, compact = false }: { wallet: Wallet; compact?: bo
         : status === 'connected'
       ? <Badge variant="secondary" className="la-connected-badge"><Check size={17} aria-hidden="true" /> Ready</Badge>
           : hasMetaMask
-            ? <button className="la-button la-button--primary" type="button" onClick={connect} disabled={status === 'connecting'} aria-busy={status === 'connecting'}>{status === 'connecting' ? 'Awaiting MetaMask…' : 'Connect wallet'}<ArrowRight size={17} aria-hidden="true" /></button>
+            ? <button className="la-button la-button--primary" type="button" onClick={connect} disabled={status === 'connecting'} aria-busy={status === 'connecting'}>{status === 'connecting' ? 'Awaiting MetaMask…' : 'Connect to MetaMask'}<ArrowRight size={17} aria-hidden="true" /></button>
             : <a className="la-button la-button--primary" href="https://metamask.io/download/" target="_blank" rel="noreferrer">Install MetaMask<ExternalLink size={17} aria-hidden="true" /></a>}
     </div>
   </section>
@@ -188,24 +188,42 @@ function WalletPanel({ wallet, compact = false }: { wallet: Wallet; compact?: bo
 function EntryPage({ wallet, navigate }: { wallet: Wallet; navigate: (href: string) => void }) {
   const ready = wallet.status === 'connected'
 
-  if (wallet.initialLoading) {
-    return (
-      <div className="la-entry la-entry--loading" aria-busy="true">
-        <div className="la-app-loader">
-          <div className="la-app-loader-spinner" />
-          <p>Verifying wallet session…</p>
+  // Directly render connect page if wallet is not connected without showing loading screen
+
+  if (!ready) return (
+    <div className="la-entry la-entry--connect" aria-label="Connect your wallet to continue">
+      <div className="la-connect-hero">
+        <div className="la-connect-badge" aria-hidden="true">
+          <img src="/primary.svg" alt="Loanch logo" width={32} height={30} />
+        </div>
+        <h1 className="la-connect-title">Connect to Loanch</h1>
+        <p className="la-connect-subtitle">Connect your MetaMask wallet and verify the BOT Chain network to start saving or borrowing.</p>
+        <div className="la-connect-panel">
+          <WalletPanel wallet={wallet} />
+          <p className="la-help-text"><ShieldCheck size={16} aria-hidden="true" />After connecting, the same wallet can save, borrow, or inspect pool records.</p>
         </div>
       </div>
-    )
-  }
-
-  if (!ready) return <div className="la-entry">
-    <PageHeader title="Connect to Loanch" description="Connect MetaMask and verify the BOT Chain network to enter the app." />
-    <div className="la-entry-surface">
-      <WalletPanel wallet={wallet} />
-      <p className="la-help-text"><ShieldCheck size={17} aria-hidden="true" />After connecting, choose whether to Save or Borrow. The same wallet can do both.</p>
+      <div className="la-connect-preview" aria-hidden="true">
+        <p className="la-connect-preview-label">Available after connecting</p>
+        <div className="la-connect-preview-grid">
+          {[
+            { icon: <PiggyBank size={22} strokeWidth={1.8} />, title: 'Save', desc: 'Deposit funds and earn returns.' },
+            { icon: <Landmark size={22} strokeWidth={1.8} />, title: 'Borrow', desc: 'Request a loan from the pool.' },
+            { icon: <Receipt size={22} strokeWidth={1.8} />, title: 'Activity', desc: 'View your transaction history.' },
+            { icon: <FileText size={22} strokeWidth={1.8} />, title: 'Transparency', desc: 'Inspect verified pool figures.' },
+          ].map(item => (
+            <div className="la-connect-preview-card" key={item.title}>
+              <span className="la-connect-preview-icon">{item.icon}</span>
+              <div>
+                <strong>{item.title}</strong>
+                <span>{item.desc}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-  </div>
+  )
 
   return <div className="la-entry la-entry--actions">
     <PageHeader title="What would you like to do?" description="Choose an action for today. One wallet can save, borrow, or inspect pool records." />
@@ -585,7 +603,42 @@ function ActivityPage({ wallet, navigate }: { wallet: Wallet; navigate: (href: s
       {wallet.status !== 'connected' ? <EmptyState title="Connect your wallet" description="Connect MetaMask to see transactions sent by your account." />
         : error ? <Notice tone="warning">{error}</Notice>
           : loading ? <Notice>Reading recent on-chain activity…</Notice>
-            : items.length ? <div className="la-panel">{items.map(item => <DataLine key={item.hash} label={item.action + ' · block ' + item.block} value={item.hash} />)}<div className="la-stack-actions">{items.map(item => <ActionLink key={item.hash} href={'/app/transactions/' + item.hash} navigate={navigate} secondary>View {shortAddress(item.hash)}</ActionLink>)}</div></div>
+            : items.length ? (
+              <div className="la-activity-grid">
+                {items.map(item => {
+                  const actionType = item.action.toLowerCase()
+                  const isDeposit = actionType.includes('deposit') || actionType.includes('save')
+                  const isBorrow = actionType.includes('borrow') || actionType.includes('loan')
+                  const isRepay = actionType.includes('repay') || actionType.includes('pay')
+
+                  return (
+                    <SpotlightCard key={item.hash} spotlightColor={isDeposit ? 'rgba(49, 208, 163, 0.25)' : isBorrow ? 'rgba(59, 130, 246, 0.25)' : 'rgba(15, 167, 143, 0.25)'} className="la-activity-spotlight-wrapper">
+                      <div className="la-activity-card">
+                        <div className="la-activity-card-header">
+                          <div className="la-activity-badge-group">
+                            <span className={`la-activity-type-badge la-activity-type-badge--${isDeposit ? 'deposit' : isBorrow ? 'borrow' : isRepay ? 'repay' : 'default'}`}>
+                              {item.action}
+                            </span>
+                            <span className="la-activity-block-badge">
+                              Block #{item.block}
+                            </span>
+                          </div>
+                          <ActionLink href={'/app/transactions/' + item.hash} navigate={navigate} secondary>
+                            Details <ArrowRight size={14} aria-hidden="true" />
+                          </ActionLink>
+                        </div>
+                        <div className="la-activity-card-body">
+                          <div className="la-activity-hash-row">
+                            <span className="la-activity-hash-label">Transaction Hash</span>
+                            <code className="la-activity-hash-code" title={item.hash}>{item.hash}</code>
+                          </div>
+                        </div>
+                      </div>
+                    </SpotlightCard>
+                  )
+                })}
+              </div>
+            )
               : <EmptyState title="No recent pool transactions" description="No transactions from this wallet appeared in the scanned block range." />}
     </Section>
   </>
@@ -611,14 +664,40 @@ function TransactionDetail({ hash, navigate }: { hash: string; navigate: (href: 
       {!validHash && <Notice tone="warning">A transaction hash must contain 0x followed by 64 hexadecimal characters.</Notice>}
       {error && <Notice tone="warning">{error}</Notice>}
       {validHash && !record && !error && <Notice>Waiting for a transaction receipt…</Notice>}
-      {record && <div className="la-panel">
-        <DataLine label="Action" value={record.action} />
-        <DataLine label="From" value={record.from} />
-        <DataLine label="To" value={record.to} />
-        <DataLine label="Block" value={record.block.toString()} />
-        <DataLine label="Receipt" value={record.confirmed ? 'Confirmed' : 'Failed'} />
-        <DataLine label="Pool contract" value={record.pool ? 'Yes' : 'No'} />
-      </div>}
+      {record && (
+        <SpotlightCard spotlightColor="rgba(49, 208, 163, 0.2)" className="la-detail-spotlight-wrapper">
+          <div className="la-detail-card">
+            <div className="la-detail-card-header">
+              <h3>Receipt Summary</h3>
+              <span className={`la-status-tag la-status-tag--${record.confirmed ? 'success' : 'failed'}`}>
+                {record.confirmed ? 'Confirmed' : 'Failed'}
+              </span>
+            </div>
+            <div className="la-detail-card-grid">
+              <div className="la-detail-item">
+                <span className="la-detail-label">Action</span>
+                <strong className="la-detail-value">{record.action}</strong>
+              </div>
+              <div className="la-detail-item">
+                <span className="la-detail-label">Block Number</span>
+                <strong className="la-detail-value">#{record.block.toString()}</strong>
+              </div>
+              <div className="la-detail-item la-detail-item--full">
+                <span className="la-detail-label">From Address</span>
+                <code className="la-detail-code">{record.from}</code>
+              </div>
+              <div className="la-detail-item la-detail-item--full">
+                <span className="la-detail-label">To Address</span>
+                <code className="la-detail-code">{record.to}</code>
+              </div>
+              <div className="la-detail-item">
+                <span className="la-detail-label">Pool Contract Transaction</span>
+                <strong className="la-detail-value">{record.pool ? 'Verified Pool Contract' : 'External Address'}</strong>
+              </div>
+            </div>
+          </div>
+        </SpotlightCard>
+      )}
     </Section>
   </>
 }
@@ -681,26 +760,34 @@ function NotFoundPage({ navigate }: { navigate: (href: string) => void }) {
 }
 
 function AppContent({ path, wallet, pool, navigate }: { path: string; wallet: Wallet; pool: Pool; navigate: (href: string) => void }) {
-  if (path === '/app' || path === '/app/') return <EntryPage wallet={wallet} navigate={navigate} />
-  if ((/^\/app\/save(?:\/|$)/.test(path) || /^\/app\/borrow(?:\/|$)/.test(path)) && wallet.status !== 'connected') return <>
-    <PageHeader title="Connect to continue" description="Connect MetaMask and verify the BOT Chain network before choosing a financial action." />
-    <WalletPanel wallet={wallet} />
-    <div className="la-gate-return"><ActionLink href="/app" navigate={navigate} secondary>Back to App Entry</ActionLink></div>
-  </>
-  if (path === '/app/save') return <SaveDashboard wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/save/deposit') return <FinancialForm kind="deposit" wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/save/withdraw') return <FinancialForm kind="withdraw" wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/borrow') return <BorrowDashboard wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/borrow/request') return <FinancialForm kind="request" wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/borrow/repay') return <FinancialForm kind="repay" wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/borrow/stake') return <FinancialForm kind="stake" wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/borrow/unstake') return <FinancialForm kind="unstake" wallet={wallet} pool={pool} navigate={navigate} />
-  if (/^\/app\/borrow\/loan\/[^/]+$/.test(path)) return <LoanDetail key={path} id={path.slice('/app/borrow/loan/'.length)} wallet={wallet} pool={pool} navigate={navigate} />
-  if (path === '/app/activity') return <ActivityPage wallet={wallet} navigate={navigate} />
-  if (/^\/app\/transactions\/[^/]+$/.test(path)) return <TransactionDetail key={path} hash={path.slice('/app/transactions/'.length)} navigate={navigate} />
-  if (path === '/app/transparency') return <TransparencyPage pool={pool} />
-  if (path === '/app/settings') return <SettingsPage wallet={wallet} pool={pool} />
-  return <NotFoundPage navigate={navigate} />
+  const getPage = () => {
+    if (path === '/app' || path === '/app/') return <EntryPage wallet={wallet} navigate={navigate} />
+    if ((/^\/app\/save(?:\/|$)/.test(path) || /^\/app\/borrow(?:\/|$)/.test(path)) && wallet.status !== 'connected') return <>
+      <PageHeader title="Connect to continue" description="Connect MetaMask and verify the BOT Chain network before choosing a financial action." />
+      <WalletPanel wallet={wallet} />
+      <div className="la-gate-return"><ActionLink href="/app" navigate={navigate} secondary>Back to App Entry</ActionLink></div>
+    </>
+    if (path === '/app/save') return <SaveDashboard wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/save/deposit') return <FinancialForm kind="deposit" wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/save/withdraw') return <FinancialForm kind="withdraw" wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/borrow') return <BorrowDashboard wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/borrow/request') return <FinancialForm kind="request" wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/borrow/repay') return <FinancialForm kind="repay" wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/borrow/stake') return <FinancialForm kind="stake" wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/borrow/unstake') return <FinancialForm kind="unstake" wallet={wallet} pool={pool} navigate={navigate} />
+    if (/^\/app\/borrow\/loan\/[^/]+$/.test(path)) return <LoanDetail key={path} id={path.slice('/app/borrow/loan/'.length)} wallet={wallet} pool={pool} navigate={navigate} />
+    if (path === '/app/activity') return <ActivityPage wallet={wallet} navigate={navigate} />
+    if (/^\/app\/transactions\/[^/]+$/.test(path)) return <TransactionDetail key={path} hash={path.slice('/app/transactions/'.length)} navigate={navigate} />
+    if (path === '/app/transparency') return <TransparencyPage pool={pool} />
+    if (path === '/app/settings') return <SettingsPage wallet={wallet} pool={pool} />
+    return <NotFoundPage navigate={navigate} />
+  }
+
+  return (
+    <div key={path} className="la-page-view">
+      {getPage()}
+    </div>
+  )
 }
 
 function AppExperience() {
