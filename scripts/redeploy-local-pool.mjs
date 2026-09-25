@@ -9,12 +9,17 @@ if (network.chainId !== 31337n) throw new Error("Local demo deployment requires 
 const artifact = JSON.parse(
   await readFile("./artifacts/contracts/LoanchPool.sol/LoanchPool.json", "utf8"),
 );
-const previousPool = new Contract(
-  process.env.VITE_LOANCH_CONTRACT_ADDRESS,
-  artifact.abi,
-  provider,
-);
-const reserveBps = await previousPool.reserveBps();
+let reserveBps = 2_000n;
+try {
+  const previousPool = new Contract(
+    process.env.VITE_LOANCH_CONTRACT_ADDRESS,
+    artifact.abi,
+    provider,
+  );
+  reserveBps = await previousPool.reserveBps();
+} catch {
+  console.log("Previous local pool is unavailable; deploying with the default 20% reserve.");
+}
 const signer = await provider.getSigner(0);
 const pool = await new ContractFactory(artifact.abi, artifact.bytecode, signer).deploy(
   reserveBps,

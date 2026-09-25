@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import {
-  ArrowDownLeft, ArrowRight, ArrowUpRight, Check,
-  Copy, ExternalLink, FileText, Landmark, PiggyBank, Receipt, ShieldCheck, Wallet,
+  ArrowRight, Check,
+  Copy, ExternalLink, FileText, Landmark, Menu, PiggyBank, Receipt, ShieldCheck, Wallet, X,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { LOANCH_CONTRACT_ADDRESS } from '../contracts/addresses'
 import { botChainConfig } from '../contracts/config'
 import { actionError, amountText, eligibilityText, parseAmount, previewLoan, readActivity, readLoan, readTransaction, submitAction, type ActionKind, type ActivityItem, type Loan, type TxProgress } from '../contracts/loanch'
@@ -94,7 +98,7 @@ function Section({ title, description, children, className = '' }: {
 }
 
 function Notice({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'warning' | 'success' }) {
-  return <div className={`la-notice la-notice--${tone}`} role={tone === 'warning' ? 'status' : undefined}>{children}</div>
+  return <div className={`la-notice la-notice--${tone}`} role={tone === 'warning' ? 'alert' : 'status'}>{children}</div>
 }
 
 function EmptyState({ title, description, children }: { title: string; description: string; children?: ReactNode }) {
@@ -119,16 +123,17 @@ function PoolNotice({ pool }: { pool: Pool }) {
 
 function TransactionStatusTracker({ stage = 'idle' }: { stage?: TransactionStage }) {
   const sequence: TransactionStage[] = ['idle', 'awaiting-wallet', 'submitted', 'confirming', 'confirmed']
-  const activeIndex = stage === 'failed' ? 4 : sequence.indexOf(stage)
-  return <div className="la-tracker" aria-live="polite">
+  const activeIndex = stage === 'failed' ? -1 : sequence.indexOf(stage)
+  return <div className={`la-tracker ${stage === 'failed' ? 'la-tracker--failed' : ''}`} aria-live="polite" aria-atomic="true">
     <div className="la-tracker-top"><h3>Transaction status</h3><span>{transactionLabels[stage]}</span></div>
     <ol>
       {sequence.map((step, index) => {
-        const label = stage === 'failed' && index === 4 ? 'Failed' : transactionLabels[step]
+        const label = transactionLabels[step]
         return <li key={step} className={index < activeIndex ? 'is-complete' : index === activeIndex ? 'is-current' : ''}>
           <span aria-hidden="true">{index < activeIndex ? <Check size={13} /> : index + 1}</span>{label}
         </li>
       })}
+      {stage === 'failed' && <li className="is-current is-error"><span aria-hidden="true"><X size={13} /></span>Failed</li>}
     </ol>
     <p>{stage === 'idle' ? 'No transaction has been started.' : stage === 'failed' ? 'The transaction did not complete.' : `Current state: ${transactionLabels[stage]}.`}</p>
   </div>
@@ -136,6 +141,16 @@ function TransactionStatusTracker({ stage = 'idle' }: { stage?: TransactionStage
 
 function WalletPanel({ wallet, compact = false }: { wallet: Wallet; compact?: boolean }) {
   const { status, address, chainId, error, hasMetaMask, connect, switchNetwork } = wallet
+  const [copied, setCopied] = useState(false)
+  const copyAddress = async () => {
+    if (!address) return
+    try {
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+    } catch {
+      setCopied(false)
+    }
+  }
   const title: Record<WalletState, string> = {
     disconnected: 'Connect MetaMask',
     connecting: 'Waiting for MetaMask',
@@ -151,20 +166,20 @@ function WalletPanel({ wallet, compact = false }: { wallet: Wallet; compact?: bo
     'wrong-network': error || 'Switch to the configured BOT Chain network to continue.',
   }
 
-  return <section className={`la-wallet-panel ${compact ? 'la-wallet-panel--compact' : ''}`} aria-label="Wallet and network status">
+  return <section className={`la-wallet-panel la-wallet-panel--${status} ${compact ? 'la-wallet-panel--compact' : ''}`} aria-label="Wallet and network status" aria-busy={status === 'connecting'}>
     <div className="la-wallet-symbol" aria-hidden="true"><Wallet size={23} strokeWidth={1.7} /></div>
     <div className="la-wallet-copy">
       <h2>{title[status]}</h2><p aria-live="polite">{detail[status]}</p>
-      {address && <p className="la-wallet-meta">Address: <code title={address}>{shortAddress(address)}</code> <span className="la-sr-only">{address}</span></p>}
+      {address && <p className="la-wallet-meta">Address: <code title={address}>{shortAddress(address)}</code> <button className="la-copy-button" type="button" onClick={() => void copyAddress()} aria-label={copied ? 'Wallet address copied' : 'Copy full wallet address'} title={copied ? 'Copied' : 'Copy address'}><Copy size={14} aria-hidden="true" /></button><span className="la-sr-only" aria-live="polite">{copied ? 'Wallet address copied.' : `Full wallet address: ${address}`}</span></p>}
       {chainId !== null && <p className="la-wallet-meta">Current chain ID: {chainId.toString()}</p>}
     </div>
     <div className="la-wallet-actions">
       {status === 'wrong-network' && expectedChainId !== null && hasMetaMask
         ? <button className="la-button la-button--primary" type="button" onClick={switchNetwork}>Switch to BOT Chain<ArrowRight size={17} aria-hidden="true" /></button>
         : status === 'connected'
-          ? <span className="la-connected-state"><Check size={17} aria-hidden="true" /> Connected</span>
+      ? <Badge variant="secondary" className="la-connected-badge"><Check size={17} aria-hidden="true" /> Ready</Badge>
           : hasMetaMask
-            ? <button className="la-button la-button--primary" type="button" onClick={connect} disabled={status === 'connecting'}>{status === 'connecting' ? 'Connecting…' : 'Connect MetaMask'}<ArrowRight size={17} aria-hidden="true" /></button>
+            ? <button className="la-button la-button--primary" type="button" onClick={connect} disabled={status === 'connecting'} aria-busy={status === 'connecting'}>{status === 'connecting' ? 'Awaiting MetaMask…' : 'Connect wallet'}<ArrowRight size={17} aria-hidden="true" /></button>
             : <a className="la-button la-button--primary" href="https://metamask.io/download/" target="_blank" rel="noreferrer">Install MetaMask<ExternalLink size={17} aria-hidden="true" /></a>}
     </div>
   </section>
@@ -172,30 +187,95 @@ function WalletPanel({ wallet, compact = false }: { wallet: Wallet; compact?: bo
 
 function EntryPage({ wallet, navigate }: { wallet: Wallet; navigate: (href: string) => void }) {
   const ready = wallet.status === 'connected'
-  if (!ready) return <>
-    <PageHeader title="Connect to Loanch" description="Connect MetaMask and verify the BOT Chain network to enter the app." />
-    <WalletPanel wallet={wallet} />
-    <p className="la-help-text">After connecting, choose whether to Save or Borrow. The same wallet can do both.</p>
-  </>
 
-  return <>
-    <PageHeader title="What would you like to do?" description="Choose an action for today. One wallet can save and borrow." />
-    <WalletPanel wallet={wallet} />
-    <div className="la-choice-grid" aria-label="Choose a financial action">
-      <ActionCard title="Save" description="Deposit funds into the loan pool and earn your share of returns." action="Deposit funds" href="/app/save" navigate={navigate} enabled={ready} icon={<ArrowDownLeft size={24} />} />
-      <ActionCard title="Borrow" description="Request a loan based on your eligibility and available liquidity." action="Request a loan" href="/app/borrow" navigate={navigate} enabled={ready} icon={<ArrowUpRight size={24} />} />
+  if (wallet.initialLoading) {
+    return (
+      <div className="la-entry la-entry--loading" aria-busy="true">
+        <div className="la-app-loader">
+          <div className="la-app-loader-spinner" />
+          <p>Verifying wallet session…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!ready) return <div className="la-entry">
+    <PageHeader title="Connect to Loanch" description="Connect MetaMask and verify the BOT Chain network to enter the app." />
+    <div className="la-entry-surface">
+      <WalletPanel wallet={wallet} />
+      <p className="la-help-text"><ShieldCheck size={17} aria-hidden="true" />After connecting, choose whether to Save or Borrow. The same wallet can do both.</p>
     </div>
-  </>
+  </div>
+
+  return <div className="la-entry la-entry--actions">
+    <PageHeader title="What would you like to do?" description="Choose an action for today. One wallet can save, borrow, or inspect pool records." />
+    <div className="la-entry-surface">
+      <WalletPanel wallet={wallet} />
+      <div className="la-choice-grid" aria-label="Choose a financial action">
+        <ActionCard title="Save" description="Deposit funds into the loan pool and earn your share of returns." action="Deposit funds" href="/app/save" navigate={navigate} enabled={ready} icon={<PiggyBank size={24} strokeWidth={1.8} />} />
+        <ActionCard title="Borrow" description="Request a loan based on your eligibility and available liquidity." action="Request a loan" href="/app/borrow" navigate={navigate} enabled={ready} icon={<Landmark size={24} strokeWidth={1.8} />} />
+        <ActionCard title="Activity" description="View recent pool transactions and block event receipts from your account." action="View activity" href="/app/activity" navigate={navigate} enabled={ready} icon={<Receipt size={24} strokeWidth={1.8} />} />
+        <ActionCard title="Transparency" description="Inspect verified pool figures, liquid reserves, and contract references." action="View transparency" href="/app/transparency" navigate={navigate} enabled={ready} icon={<FileText size={24} strokeWidth={1.8} />} />
+      </div>
+    </div>
+  </div>
+}
+
+function SpotlightCard({ children, className = '', spotlightColor = 'rgba(49, 208, 163, 0.22)' }: { children: ReactNode; className?: string; spotlightColor?: string }) {
+  const divRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!divRef.current) return
+    const rect = divRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    divRef.current.style.setProperty('--mouse-x', `${x}px`)
+    divRef.current.style.setProperty('--mouse-y', `${y}px`)
+    divRef.current.style.setProperty('--spotlight-color', spotlightColor)
+  }
+
+  return (
+    <div ref={divRef} onMouseMove={handleMouseMove} className={`card-spotlight ${className}`}>
+      {children}
+    </div>
+  )
 }
 
 function ActionCard({ title, description, action, href, navigate, enabled, icon }: {
   title: string; description: string; action: string; href: string
   navigate: (href: string) => void; enabled: boolean; icon: ReactNode
 }) {
-  const inner = <><span className="la-choice-icon" aria-hidden="true">{icon}</span><span className="la-choice-body"><strong>{title}</strong><span>{description}</span></span><span className="la-choice-action">{action}<ArrowRight size={18} aria-hidden="true" /></span></>
+  const cardType = title.toLowerCase()
+  const spotlightColor =
+    cardType === 'save' ? 'rgba(49, 208, 163, 0.35)'
+    : cardType === 'borrow' ? 'rgba(59, 130, 246, 0.35)'
+    : cardType === 'activity' ? 'rgba(56, 189, 248, 0.35)'
+    : 'rgba(15, 167, 143, 0.35)'
+
+  const card = (
+    <SpotlightCard spotlightColor={spotlightColor} className={`la-choice-spotlight-wrapper la-choice-spotlight--${cardType}`}>
+      <Card className={`la-choice la-choice--${cardType}`}>
+        <CardHeader className="la-choice-header">
+          <span className="la-choice-icon" aria-hidden="true">{icon}</span>
+          <div className="la-choice-body">
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="la-choice-content"><Separator className="la-choice-separator" decorative /></CardContent>
+        <CardFooter className="la-choice-footer">
+          <Button asChild variant="ghost" size="lg" className="la-choice-action" tabIndex={-1}>
+            <span>{action}<ArrowRight data-icon="inline-end" aria-hidden="true" /></span>
+          </Button>
+        </CardFooter>
+      </Card>
+    </SpotlightCard>
+  )
+
   return enabled
-    ? <AppLink href={href} navigate={navigate} className="la-choice">{inner}</AppLink>
-    : <div className="la-choice la-choice--disabled" aria-disabled="true">{inner}</div>
+    ? <AppLink href={href} navigate={navigate} className="la-choice-link">{card}</AppLink>
+    : <div className="la-choice-disabled" aria-disabled="true">{card}</div>
 }
 
 function AccessNote({ wallet }: { wallet: Wallet }) {
@@ -609,6 +689,14 @@ function AppExperience() {
     setMobileOpen(false)
     navigate(href)
   }
+  useEffect(() => {
+    if (!mobileOpen) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [mobileOpen])
   const activeNav = path.startsWith('/app/save') ? '/app/save'
     : path.startsWith('/app/borrow') ? '/app/borrow'
       : path.startsWith('/app/activity') || path.startsWith('/app/transactions/') ? '/app/activity'
@@ -618,7 +706,12 @@ function AppExperience() {
   return <div className="loanch-app">
     <a className="la-skip" href="#app-main">Skip to content</a>
     <div className="la-shell">
-      <aside className={`la-sidebar ${mobileOpen ? 'la-sidebar--open' : ''}`} aria-label="App navigation">
+      <header className="la-mobile-header">
+        <button className="la-menu-button" type="button" aria-label={mobileOpen ? 'Close app navigation' : 'Open app navigation'} aria-expanded={mobileOpen} aria-controls="app-navigation" onClick={() => setMobileOpen(open => !open)}>{mobileOpen ? <X size={21} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}</button>
+        <AppLink href="/app" navigate={navigateAndClose} className="la-mobile-brand" title="Loanch app"><img src="/primary.svg" alt="" width={25} height={24} /><span>loanch<span>.</span></span></AppLink>
+        <AppLink href="/app/settings" navigate={navigateAndClose} className="la-mobile-account" title="Wallet settings"><span className={`la-status-dot la-status-dot--${wallet.status}`} aria-hidden="true" /><span className="la-sr-only">Wallet settings. Status: {wallet.status.replace('-', ' ')}.</span><ShieldCheck size={18} aria-hidden="true" /></AppLink>
+      </header>
+      <aside id="app-navigation" className={`la-sidebar ${mobileOpen ? 'la-sidebar--open' : ''}`} aria-label="App navigation">
         <div className="la-sidebar-header">
           <AppLink href="/app" navigate={navigateAndClose} className="la-logo" title="Loanch app">
             <img src="/primary.svg" alt="Loanch logo" width={32} height={30} className="la-logo-img" />
@@ -663,6 +756,7 @@ function AppExperience() {
           </AppLink>
         </div>
       </aside>
+      {mobileOpen && <button className="la-sidebar-backdrop" type="button" onClick={() => setMobileOpen(false)} aria-label="Close app navigation" />}
 
       <div className="la-main-column">
         <main className="la-main" id="app-main"><AppContent path={path} wallet={wallet} pool={pool} navigate={navigateAndClose} /></main>
