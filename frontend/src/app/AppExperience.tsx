@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { LOANCH_CONTRACT_ADDRESS } from '../contracts/addresses'
-import { botChainConfig } from '../contracts/config'
+import { botChainConfig, loanchContractExplorerUrl } from '../contracts/config'
 import { actionError, amountText, eligibilityText, parseAmount, previewLoan, readActivity, readLoan, readTransaction, submitAction, type ActionKind, type ActivityItem, type Loan, type TxProgress } from '../contracts/loanch'
 import { expectedChainId, shortAddress, useWallet, type WalletState } from './useWallet'
 import { usePool } from './usePool'
@@ -741,6 +741,7 @@ function TransparencyPage({ pool }: { pool: Pool }) {
           <p className="la-contract-address">{contractAddress || 'Not configured'}</p>
           {contractAddress && <button className="la-button la-button--secondary" type="button" onClick={copyAddress}>{copied ? 'Copied' : 'Copy address'}<Copy size={16} aria-hidden="true" /></button>}
           <p>{data ? 'Pool contract and native BOT balance were verified on the configured RPC.' : 'Pool contract verification is pending.'}</p>
+          {contractAddress && <a className="la-inline-link" href={loanchContractExplorerUrl} target="_blank" rel="noreferrer">Open contract on BOT Explorer <ExternalLink size={15} aria-hidden="true" /></a>}
         </div>
       </div>
     </Section>

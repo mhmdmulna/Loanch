@@ -1,3 +1,5 @@
+import { LOANCH_CONTRACT_ADDRESS } from './addresses'
+
 const mainnetDefaults = {
   rpcUrl: 'https://rpc.botchain.ai',
   chainId: '677',
@@ -16,3 +18,5 @@ export const botChainConfig = {
     decimals: 18,
   },
 } as const
+
+export const loanchContractExplorerUrl = `${botChainConfig.explorerUrl.replace(/\/+$/, '')}/address/${LOANCH_CONTRACT_ADDRESS}?tab=txs`

@@ -277,6 +277,8 @@ a.la-choice:hover { border-color: #48a692; background: #102b35; transform: trans
 .la-panel h3 { margin-bottom: 18px; font-size: 17px; font-weight: 650; }
 .la-panel p:not(.la-contract-address) { margin-top: 18px; color: var(--la-muted); font-size: 13px; line-height: 1.6; }
 .la-contract-address { min-height: 44px; color: var(--la-secondary); font-size: 13px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+.la-inline-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--la-accent); font-size: 13px; font-weight: 700; }
+.la-inline-link:hover { color: var(--la-secondary); }
 .la-footer { display: flex; justify-content: space-between; gap: 16px; padding: 20px clamp(24px, 4vw, 60px); border-top: 1px solid var(--la-border); color: var(--la-muted); font-size: 12px; }
 .la-footer span:last-child { display: inline-flex; align-items: center; gap: 8px; }
 
